@@ -53,20 +53,15 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 from torch.nn import DataParallel
-from torch.utils.tensorboard import SummaryWriter
 
-from metrics.base_metrics_class import calculate_metrics_for_train
+# TODO: to add back
+# from metrics.base_metrics_class import calculate_metrics_for_train
 
 from .base_detector import AbstractDetector
-from detectors import DETECTOR
-from networks import BACKBONE
-from loss import LOSSFUNC
+from networks import Xception
 import random
 
 logger = logging.getLogger(__name__)
-
-
-@DETECTOR.register_module(module_name='spsl')
 class SpslDetector(AbstractDetector):
     def __init__(self, config):
         super().__init__()
@@ -76,20 +71,26 @@ class SpslDetector(AbstractDetector):
 
     def build_backbone(self, config):
         # prepare the backbone
-        backbone_class = BACKBONE[config['backbone_name']]
         model_config = config['backbone_config']
-        backbone = backbone_class(model_config)
+        backbone = Xception(model_config)
 
         # To get a good performance, use the ImageNet-pretrained Xception model
-        state_dict = torch.load(config['pretrained'])
+        # pretrained here is path to saved weights
+        if config['device'] == 'cpu':
+            state_dict = torch.load(config['pretrained'], map_location=torch.device('cpu'))
+        else:
+            state_dict = torch.load(config['pretrained'])
+
         for name, weights in state_dict.items():
+            print(name)
             if 'pointwise' in name:
                 state_dict[name] = weights.unsqueeze(-1).unsqueeze(-1)
         state_dict = {k: v for k, v in state_dict.items() if 'fc' not in k}
 
-        # remove conv1 from state_dict
-        conv1_data = state_dict.pop('conv1.weight')
 
+        # remove conv1 from state_dict
+        # conv1_data = state_dict.pop('conv1.weight')
+        conv1_data = state_dict.pop('module.backbone.conv1.weight')
         backbone.load_state_dict(state_dict, False)
         logger.info('Load pretrained model from {}'.format(config['pretrained']))
 
@@ -104,8 +105,7 @@ class SpslDetector(AbstractDetector):
 
     def build_loss(self, config):
         # prepare the loss function
-        loss_class = LOSSFUNC[config['loss_func']]
-        loss_func = loss_class()
+        loss_func = CrossEntropyLoss()
         return loss_func
 
     def features(self, data_dict: dict, phase_fea) -> torch.tensor:
@@ -116,6 +116,7 @@ class SpslDetector(AbstractDetector):
         return self.backbone.classifier(features)
 
     def get_losses(self, data_dict: dict, pred_dict: dict) -> dict:
+        # TODO: check whether this matches
         label = data_dict['label']
         pred = pred_dict['cls']
         loss = self.loss_func(pred, label)
@@ -140,13 +141,15 @@ class SpslDetector(AbstractDetector):
         # get the probability of the pred
         prob = torch.softmax(pred, dim=1)[:, 1]
         # build the prediction dict for each output
+        # prob takes the probability that it is label 1 --> fake/real?
         pred_dict = {'cls': pred, 'prob': prob, 'feat': features}
 
         return pred_dict
 
     def phase_without_amplitude(self, img):
         # Convert to grayscale
-        gray_img = torch.mean(img, dim=1, keepdim=True)  # shape: (batch_size, 1, 256, 256)
+        # print(img)
+        gray_img = torch.mean(img.to(torch.float32), dim=1, keepdim=True)  # shape: (batch_size, 1, 256, 256)
         # Compute the DFT of the input signal
         X = torch.fft.fftn(gray_img, dim=(-1, -2))
         # X = torch.fft.fftn(img)
@@ -158,3 +161,24 @@ class SpslDetector(AbstractDetector):
         reconstructed_x = torch.real(torch.fft.ifftn(reconstructed_X, dim=(-1, -2)))
         # reconstructed_x = torch.real(torch.fft.ifftn(reconstructed_X))
         return reconstructed_x
+
+class CrossEntropyLoss():
+    def __init__(self):
+        super().__init__()
+        self.loss_fn = nn.CrossEntropyLoss()
+
+    def forward(self, inputs, targets):
+        """
+        Computes the cross-entropy loss.
+
+        Args:
+            inputs: A PyTorch tensor of size (batch_size, num_classes) containing the predicted scores.
+            targets: A PyTorch tensor of size (batch_size) containing the ground-truth class indices.
+
+        Returns:
+            A scalar tensor representing the cross-entropy loss.
+        """
+        # Compute the cross-entropy loss
+        loss = self.loss_fn(inputs, targets)
+
+        return loss
