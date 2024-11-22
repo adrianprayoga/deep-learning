@@ -39,8 +39,8 @@ for idx, segment in enumerate(segments[1:]):
     prompts.append(prompt)
     nsfws.append(nsfw)
     # print(cleaned_segment)
-    break
+    # break
 df = pd.DataFrame({'name': names, 'prompt': prompts, 'nsfw': nsfws})
 # %%
-df.to_csv()
+df.to_csv(csv_fp, index=False)
 # %%

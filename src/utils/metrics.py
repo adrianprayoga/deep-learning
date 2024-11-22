@@ -53,7 +53,7 @@ def get_test_metrics(
         })
 
         # Save to a CSV file
-        csv_filename = f"../outputs/{model_name}_{training_ds}_to_{testing_ds}_predictions.csv"
+        csv_filename = f"outputs/{model_name}_{training_ds}_to_{testing_ds}_predictions.csv"
         results_df.to_csv(csv_filename, index=False)
         print(f"Predictions saved to {csv_filename}")
 
