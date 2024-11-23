@@ -132,7 +132,10 @@ class InferenceDataset(Dataset):
         image = Image.open(image_path).convert("RGB")
 
         # Resize the image
-        image = image.resize((self.resolution, self.resolution), Image.ANTIALIAS)
+        # image = image.resize((self.resolution, self.resolution), Image.ANTIALIAS)
+        # Seems ANTIALIAS has been removed in latest Pillow
+        image = image.resize((self.resolution, self.resolution), Image.Resampling.LANCZOS)
+
 
         # Convert the image to a tensor (C, H, W format)
         image_tensor = torch.tensor(
