@@ -6,8 +6,9 @@ from torch.utils.data import DataLoader
 import numpy as np
 
 
+@torch.no_grad()
 def evaluate_model_with_metrics(
-    detector, weights_path, dataset_eval, 
+    detector, weights_path, dataset_eval,
     model_name, training_ds, testing_ds, batch_size=16, device=None, save=False):
     """
     Evaluates a CLIP-based detector on a specified evaluation dataset with metrics calculation.
@@ -30,17 +31,19 @@ def evaluate_model_with_metrics(
     # Set the device
     if device is None:
         device = "cuda" if torch.cuda.is_available() else "cpu"
-        
-    # Load pre-trained weights
-    state_dict = torch.load(weights_path, map_location=device)
-    
-    # Adjust for any prefixes in the state_dict keys (e.g., 'module.')
-    if 'clip' in model_name.lower():
-        if any(key.startswith("module.") for key in state_dict.keys()):
-            state_dict = {k.replace("module.", ""): v for k, v in state_dict.items()}
 
-    # Load the state dictionary with relaxed strictness
-    missing_keys, unexpected_keys = detector.load_state_dict(state_dict, strict=False)
+    missing_keys, unexpected_keys = None, None
+    if weights_path is not None:
+    # Load pre-trained weights
+        state_dict = torch.load(weights_path, map_location=device)
+    
+        # Adjust for any prefixes in the state_dict keys (e.g., 'module.')
+        if 'clip' in model_name.lower():
+            if any(key.startswith("module.") for key in state_dict.keys()):
+                state_dict = {k.replace("module.", ""): v for k, v in state_dict.items()}
+
+        # Load the state dictionary with relaxed strictness
+        missing_keys, unexpected_keys = detector.load_state_dict(state_dict, strict=False)
 
     # Optional: Log or handle missing/unexpected keys
     if missing_keys:
@@ -71,6 +74,7 @@ def evaluate_model_with_metrics(
             images = images.to(device)
 
             # Run the model
+            detector.eval()
             probabilities = detector(images)
             all_preds.extend(probabilities[:, 1].cpu().numpy())  # Fake class probability
             all_labels.extend(labels.numpy())  # Collect true labels
