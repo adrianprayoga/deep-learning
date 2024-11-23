@@ -24,7 +24,7 @@ if __name__ == '__main__':
         weights_path=None
     elif config['model_type'] == "clip":
         detector = CLIPDetector(num_classes=2)
-        weights_path = "/home/ginger/code/gderiddershanghai/deep-learning/weights/clip_FS/clip.pth"
+        weights_path = config["weights_path"]
         model_name = "CLIP_Base"
     else:
         print('model type is not supported!!!')

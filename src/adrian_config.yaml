@@ -1,4 +1,5 @@
-model_type: 'spsl'
+model_type: 'clip'
 data_root_dir: "/Users/adrian.prayoga/omscs/deep_learning/deep-learning-project/dataset/midjourney"
 training_ds: "FaceSwap"
 testing_ds: "Midjourney"
+weights_path: "/Users/adrian.prayoga/omscs/deep_learning/deep-learning-project/weights/clip.pth"
