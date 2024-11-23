@@ -1,3 +1,7 @@
+"""
+Simple function to go through the corrupted json file and extract the needed information
+"""
+
 # %%
 import pandas as pd
 import os
