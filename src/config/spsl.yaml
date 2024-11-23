@@ -1,0 +1,24 @@
+# log dir 
+
+# model setting
+pretrained: ../weights/spsl_fs.pth   # path to a pre-trained model, if using one
+model_name: spsl   # model name
+
+#backbone setting
+backbone_config:
+  mode: original
+  num_classes: 2
+  inc: 4
+  dropout: false
+
+# mean and std for normalization
+mean: [0.5, 0.5, 0.5]
+std: [0.5, 0.5, 0.5]
+
+# metric
+metric_scoring: auc   # metric for evaluation (auc, acc, eer, ap)
+
+# cuda
+ngpu: 1   # number of GPUs to use
+cuda: true   # whether to use CUDA acceleration
+cudnn: true   # whether to use CuDNN for convolution operations

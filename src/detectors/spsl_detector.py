@@ -40,26 +40,16 @@ Notes:
 To ensure consistency in the comparison with other detectors, we have opted not to utilize the shallow Xception architecture. Instead, we are employing the original Xception model.
 '''
 
-import os
-import datetime
 import logging
-import numpy as np
-from sklearn import metrics
-from typing import Union
-from collections import defaultdict
 
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
-import torch.optim as optim
-from torch.nn import DataParallel
 
 # TODO: to add back
 # from metrics.base_metrics_class import calculate_metrics_for_train
 
 from .base_detector import AbstractDetector
 from networks import Xception
-import random
 
 logger = logging.getLogger(__name__)
 class SpslDetector(AbstractDetector):
@@ -94,7 +84,7 @@ class SpslDetector(AbstractDetector):
         backbone.load_state_dict(state_dict, False)
         logger.info('Load pretrained model from {}'.format(config['pretrained']))
 
-        # copy on conv1
+        # copy on conv1p
         # let new conv1 use old param to balance the network
         backbone.conv1 = nn.Conv2d(4, 32, 3, 2, 0, bias=False)
         avg_conv1_data = conv1_data.mean(dim=1, keepdim=True)  # average across the RGB channels
@@ -109,42 +99,47 @@ class SpslDetector(AbstractDetector):
         return loss_func
 
     def features(self, data_dict: dict, phase_fea) -> torch.tensor:
-        features = torch.cat((data_dict['image'], phase_fea), dim=1)
+        features = torch.cat((data_dict, phase_fea), dim=1)
         return self.backbone.features(features)
 
     def classifier(self, features: torch.tensor) -> torch.tensor:
         return self.backbone.classifier(features)
 
     def get_losses(self, data_dict: dict, pred_dict: dict) -> dict:
-        # TODO: check whether this matches
-        label = data_dict['label']
-        pred = pred_dict['cls']
-        loss = self.loss_func(pred, label)
-        loss_dict = {'overall': loss}
-        return loss_dict
+        # # TODO: check whether this matches
+        # label = data_dict['label']
+        # pred = pred_dict['cls']
+        # loss = self.loss_func(pred, label)
+        # loss_dict = {'overall': loss}
+        return {}
 
     def get_train_metrics(self, data_dict: dict, pred_dict: dict) -> dict:
-        label = data_dict['label']
-        pred = pred_dict['cls']
-        # compute metrics for batch data
-        auc, eer, acc, ap = calculate_metrics_for_train(label.detach(), pred.detach())
-        metric_batch_dict = {'acc': acc, 'auc': auc, 'eer': eer, 'ap': ap}
-        return metric_batch_dict
+        # label = data_dict['label']
+        # pred = pred_dict['cls']
+        # # compute metrics for batch data
+        # auc, eer, acc, ap = calculate_metrics_for_train(label.detach(), pred.detach())
+        # metric_batch_dict = {'acc': acc, 'auc': auc, 'eer': eer, 'ap': ap}
+        return {}
 
     def forward(self, data_dict: dict, inference=False) -> dict:
+
+        # print(data_dict)
+
         # get the phase features
-        phase_fea = self.phase_without_amplitude(data_dict['image'])
+        phase_fea = self.phase_without_amplitude(data_dict)
         # bp
         features = self.features(data_dict, phase_fea)
         # get the prediction by classifier
         pred = self.classifier(features)
         # get the probability of the pred
-        prob = torch.softmax(pred, dim=1)[:, 1]
+        prob = torch.softmax(pred, dim=1)
         # build the prediction dict for each output
         # prob takes the probability that it is label 1 --> fake/real?
         pred_dict = {'cls': pred, 'prob': prob, 'feat': features}
 
-        return pred_dict
+        print('probability', pred, prob)
+
+        return pred_dict['prob']
 
     def phase_without_amplitude(self, img):
         # Convert to grayscale

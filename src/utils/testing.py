@@ -1,4 +1,6 @@
-from .dataloader import InferenceDataset 
+# from PyQt5.QtGui.QRawFont import weight
+
+from .dataloader import InferenceDataset
 from .model_loading import CLIPDetector
 from .metrics import get_test_metrics
 import torch
@@ -30,16 +32,18 @@ def evaluate_model_with_metrics(
     # Set the device
     if device is None:
         device = "cuda" if torch.cuda.is_available() else "cpu"
-        
-    # Load pre-trained weights
-    state_dict = torch.load(weights_path, map_location=device)
-    
-    # Adjust for any prefixes in the state_dict keys (e.g., 'module.')
-    if any(key.startswith("module.") for key in state_dict.keys()):
-        state_dict = {k.replace("module.", ""): v for k, v in state_dict.items()}
 
-    # Load the state dictionary with relaxed strictness
-    missing_keys, unexpected_keys = detector.load_state_dict(state_dict, strict=False)
+    missing_keys, unexpected_keys = None, None
+    if weights_path is not None:
+    # Load pre-trained weights
+        state_dict = torch.load(weights_path, map_location=device)
+
+        # Adjust for any prefixes in the state_dict keys (e.g., 'module.')
+        if any(key.startswith("module.") for key in state_dict.keys()):
+            state_dict = {k.replace("module.", ""): v for k, v in state_dict.items()}
+
+        # Load the state dictionary with relaxed strictness
+        missing_keys, unexpected_keys = detector.load_state_dict(state_dict, strict=False)
 
     # Optional: Log or handle missing/unexpected keys
     if missing_keys:
