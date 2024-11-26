@@ -48,11 +48,10 @@ import torch.nn as nn
 # TODO: to add back
 # from metrics.base_metrics_class import calculate_metrics_for_train
 
-from .base_detector import AbstractDetector
 from networks import Xception
 
 logger = logging.getLogger(__name__)
-class SpslDetector(AbstractDetector):
+class SpslDetector(nn.Module):
     def __init__(self, config):
         super().__init__()
         self.config = config
@@ -66,30 +65,33 @@ class SpslDetector(AbstractDetector):
 
         # To get a good performance, use the ImageNet-pretrained Xception model
         # pretrained here is path to saved weights
+
+        print('loading trained weights from', config['pretrained'])
         if config['device'] == 'cpu':
             state_dict = torch.load(config['pretrained'], map_location=torch.device('cpu'))
         else:
             state_dict = torch.load(config['pretrained'])
 
-        for name, weights in state_dict.items():
-            print(name)
-            if 'pointwise' in name:
-                state_dict[name] = weights.unsqueeze(-1).unsqueeze(-1)
+        if any(key.startswith("module.backbone.") for key in state_dict.keys()):
+            state_dict = {k.replace("module.backbone.", ""): v for k, v in state_dict.items()}
         state_dict = {k: v for k, v in state_dict.items() if 'fc' not in k}
 
+        # for name, weight in backbone.state_dict():
+        #     print(name)
 
         # remove conv1 from state_dict
         # conv1_data = state_dict.pop('conv1.weight')
-        conv1_data = state_dict.pop('module.backbone.conv1.weight')
-        backbone.load_state_dict(state_dict, False)
+        conv1_data = state_dict.pop('conv1.weight')
+        missing_keys, unexpected_keys = backbone.load_state_dict(state_dict, strict=False)
+        print("Missing keys:", missing_keys)
+        print("Unexpected keys:", unexpected_keys)
         logger.info('Load pretrained model from {}'.format(config['pretrained']))
 
         # copy on conv1p
         # let new conv1 use old param to balance the network
         backbone.conv1 = nn.Conv2d(4, 32, 3, 2, 0, bias=False)
         avg_conv1_data = conv1_data.mean(dim=1, keepdim=True)  # average across the RGB channels
-        backbone.conv1.weight.data = avg_conv1_data.repeat(1, 4, 1,
-                                                           1)  # repeat the averaged weights across the 4 new channels
+        backbone.conv1.weight.data = avg_conv1_data.repeat(1, 4, 1, 1)  # repeat the averaged weights across the 4 new channels
         logger.info('Copy conv1 from pretrained model')
         return backbone
 
@@ -98,7 +100,7 @@ class SpslDetector(AbstractDetector):
         loss_func = CrossEntropyLoss()
         return loss_func
 
-    def features(self, data_dict: dict, phase_fea) -> torch.tensor:
+    def features(self, data_dict, phase_fea) -> torch.tensor:
         features = torch.cat((data_dict, phase_fea), dim=1)
         return self.backbone.features(features)
 
@@ -121,14 +123,14 @@ class SpslDetector(AbstractDetector):
         # metric_batch_dict = {'acc': acc, 'auc': auc, 'eer': eer, 'ap': ap}
         return {}
 
-    def forward(self, data_dict: dict, inference=False) -> dict:
-
-        # print(data_dict)
+    def forward(self, data_dict, inference=False) -> dict:
 
         # get the phase features
         phase_fea = self.phase_without_amplitude(data_dict)
+        print('fea', phase_fea[0])
         # bp
         features = self.features(data_dict, phase_fea)
+        print('features result', features[0])
         # get the prediction by classifier
         pred = self.classifier(features)
         # get the probability of the pred
@@ -137,7 +139,7 @@ class SpslDetector(AbstractDetector):
         # prob takes the probability that it is label 1 --> fake/real?
         pred_dict = {'cls': pred, 'prob': prob, 'feat': features}
 
-        print('probability', pred, prob)
+        print('probability', prob)
 
         return pred_dict['prob']
 
