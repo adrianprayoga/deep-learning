@@ -82,13 +82,17 @@ class InferenceDataset(Dataset):
     """
     A PyTorch Dataset class for loading .jpg images for inference.
     """
+   
     root_dir: str  # Root directory containing subdirectories of images
-    resolution: int = 224  # Desired resolution for resizing images
-
+    resolution: int   # Desired resolution for resizing images
+    model_name: str
+     
     def __post_init__(self):
         """
         Initializes the dataset by collecting all .jpg image paths and their labels.
         """
+        self.resolution = 224 if 'clip' in self.model_name.lower() else 256
+
         self.image_paths = []
         self.labels = []
 
@@ -150,9 +154,9 @@ class InferenceDataset(Dataset):
 if __name__ == "__main__":
     # Example for testing the dataset with the given directories
     root_dir = "/home/ginger/code/gderiddershanghai/deep-learning/data/MidJourney"
-
+    model_name = "clip_DF40"
     resolution = 224  # CLIP resolution
-    dataset = InferenceDataset(root_dir=root_dir, resolution=resolution)
+    dataset = InferenceDataset(root_dir=root_dir, resolution=resolution,model_name = model_name)
 
     print(f"Number of images: {len(dataset)}")
 

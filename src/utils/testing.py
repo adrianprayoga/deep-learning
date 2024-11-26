@@ -1,5 +1,5 @@
 from .dataloader import InferenceDataset 
-from .model_loading import CLIPDetector
+from .model_loading import CLIPDetector, XceptionDetector
 from .metrics import get_test_metrics
 import torch
 from torch.utils.data import DataLoader
@@ -7,8 +7,8 @@ import numpy as np
 
 
 def evaluate_model_with_metrics(
-    detector, weights_path, dataset_eval, model_name, training_ds, testing_ds, batch_size=16, device=None, save=False
-):
+    detector, weights_path, dataset_eval, 
+    model_name, training_ds, testing_ds, batch_size=16, device=None, save=False):
     """
     Evaluates a CLIP-based detector on a specified evaluation dataset with metrics calculation.
 
@@ -35,8 +35,9 @@ def evaluate_model_with_metrics(
     state_dict = torch.load(weights_path, map_location=device)
     
     # Adjust for any prefixes in the state_dict keys (e.g., 'module.')
-    if any(key.startswith("module.") for key in state_dict.keys()):
-        state_dict = {k.replace("module.", ""): v for k, v in state_dict.items()}
+    if 'clip' in model_name.lower():
+        if any(key.startswith("module.") for key in state_dict.keys()):
+            state_dict = {k.replace("module.", ""): v for k, v in state_dict.items()}
 
     # Load the state dictionary with relaxed strictness
     missing_keys, unexpected_keys = detector.load_state_dict(state_dict, strict=False)
@@ -97,7 +98,7 @@ def evaluate_model_with_metrics(
         testing_ds=testing_ds,
         save=save
     )
-    print("Test Metrics:")
+    print(f"Test Metrics for {training_ds}_{testing_ds}:")
     for key, value in metrics_result.items():
         if isinstance(value, (float, int)):
             print(f"{key}: {value:.4f}")
@@ -106,20 +107,25 @@ def evaluate_model_with_metrics(
     return metrics_result
 
 if __name__ == "__main__":
+    resolution = 224 #224
+    testing_ds = "MidJourney"
+    # training_ds = "clip_DF40"
+    training_ds = "exception_DF40"
+    root_dir = f"/home/ginger/code/gderiddershanghai/deep-learning/data/{testing_ds}" #starganv2 #MidJourney
+    dataset_eval = InferenceDataset(root_dir=root_dir, resolution=resolution,model_name = training_ds)
 
-    root_dir = "/home/ginger/code/gderiddershanghai/deep-learning/data/MidJourney"
-    dataset_eval = InferenceDataset(root_dir=root_dir, resolution=224)
-
-    detector = CLIPDetector(num_classes=2)
-    weights_path = "/home/ginger/code/gderiddershanghai/deep-learning/weights/clip_FS/clip.pth"
+    # detector = CLIPDetector(num_classes=2)
+    detector = XceptionDetector(num_classes=2)
+    # weights_path = f"/home/ginger/code/gderiddershanghai/deep-learning/weights/{training_ds}/clip.pth"
+    weights_path = 'weights/exception_DF40/xception.pth'
 
     results = evaluate_model_with_metrics(
         detector=detector,
         weights_path=weights_path,
         dataset_eval=dataset_eval,
-        model_name="CLIP_Base",
-        training_ds="FaceSwap",
-        testing_ds="Midjourney",
+        model_name= training_ds,
+        training_ds=training_ds, # "FaceSwap" #FaceReenactment $ EntireFaceSynthesis # DF40
+        testing_ds = testing_ds,
         batch_size=16,
         save=True  # Save predictions to a CSV
 )
