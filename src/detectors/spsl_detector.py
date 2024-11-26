@@ -76,23 +76,24 @@ class SpslDetector(nn.Module):
             state_dict = {k.replace("module.backbone.", ""): v for k, v in state_dict.items()}
         state_dict = {k: v for k, v in state_dict.items() if 'fc' not in k}
 
-        # for name, weight in backbone.state_dict():
-        #     print(name)
+        remove_first_layer = False
+        if remove_first_layer:
+            # remove conv1 from state_dict
+            conv1_data = state_dict.pop('conv1.weight')
+            missing_keys, unexpected_keys = backbone.load_state_dict(state_dict, strict=False)
 
-        # remove conv1 from state_dict
-        # conv1_data = state_dict.pop('conv1.weight')
-        conv1_data = state_dict.pop('conv1.weight')
-        missing_keys, unexpected_keys = backbone.load_state_dict(state_dict, strict=False)
+            logger.info('Load pretrained model from {}'.format(config['pretrained']))
+            # copy on conv1p
+            # let new conv1 use old param to balance the network
+            backbone.conv1 = nn.Conv2d(4, 32, 3, 2, 0, bias=False)
+            avg_conv1_data = conv1_data.mean(dim=1, keepdim=True)  # average across the RGB channels
+            # repeat the averaged weights across the 4 new channels
+            backbone.conv1.weight.data = avg_conv1_data.repeat(1, 4, 1, 1)
+        else:
+            missing_keys, unexpected_keys = backbone.load_state_dict(state_dict, strict=False)
+
         print("Missing keys:", missing_keys)
         print("Unexpected keys:", unexpected_keys)
-        logger.info('Load pretrained model from {}'.format(config['pretrained']))
-
-        # copy on conv1p
-        # let new conv1 use old param to balance the network
-        backbone.conv1 = nn.Conv2d(4, 32, 3, 2, 0, bias=False)
-        avg_conv1_data = conv1_data.mean(dim=1, keepdim=True)  # average across the RGB channels
-        backbone.conv1.weight.data = avg_conv1_data.repeat(1, 4, 1, 1)  # repeat the averaged weights across the 4 new channels
-        logger.info('Copy conv1 from pretrained model')
         return backbone
 
     def build_loss(self, config):
@@ -127,10 +128,8 @@ class SpslDetector(nn.Module):
 
         # get the phase features
         phase_fea = self.phase_without_amplitude(data_dict)
-        print('fea', phase_fea[0])
         # bp
         features = self.features(data_dict, phase_fea)
-        print('features result', features[0])
         # get the prediction by classifier
         pred = self.classifier(features)
         # get the probability of the pred

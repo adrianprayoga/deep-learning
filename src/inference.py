@@ -1,4 +1,7 @@
+import os
 import time
+from pathlib import Path
+
 import torch
 import yaml
 
@@ -9,16 +12,21 @@ from utils.testing import evaluate_model_with_metrics
 
 if __name__ == '__main__':
 
-    with open('adrian_config.yaml', 'r') as f:
+    ## FILE THAT NEEDS TO BE UPDATED
+    # Change the file below to your local config name
+    # run python inference.py from main folder
+    PROJECT_DIR = Path(__file__).resolve().parent.parent
+    with open(os.path.join(PROJECT_DIR, 'src/adrian_config.yaml'), 'r') as f:
         config = yaml.safe_load(f)
 
-    dataset_eval = InferenceDataset(root_dir=config['data_root_dir'], resolution=224)
+    dataset_eval = InferenceDataset(root_dir=config['data_root_dir'], resolution=256)
 
     detector = None
     if config['model_type'] == "spsl":
-        with open('config/spsl.yaml', 'r') as f:
+        with open(os.path.join(PROJECT_DIR, 'src/config/spsl.yaml'), 'r') as f:
             model_config = yaml.safe_load(f)
         model_config['device'] = "cuda" if torch.cuda.is_available() else "cpu"
+        model_config['pretrained'] = os.path.join(PROJECT_DIR, config["weights_path"])
         detector = SpslDetector(model_config)
         model_name = "SPSL"
         weights_path=None

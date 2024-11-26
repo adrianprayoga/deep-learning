@@ -1,8 +1,9 @@
 # log dir 
 
 # model setting
-pretrained: ../weights/spsl_fs.pth   # path to a pre-trained model, if using one
-model_name: spsl   # model name
+#pretrained: weights/spsl_fs.pth   # path to a pre-trained model, if using one
+#pretrained: weights/spsl_fs.pth
+#model_name: spsl   # model name
 
 #backbone setting
 backbone_config:

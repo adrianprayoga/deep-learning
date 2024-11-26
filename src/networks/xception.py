@@ -251,12 +251,11 @@ class Xception(nn.Module):
         return x
 
     def features(self, input):
-        x = self.fea_part1(input)
 
+        x = self.fea_part1(input)
         x = self.fea_part2(x)
         x = self.fea_part3(x)
         x = self.fea_part4(x)
-
         x = self.fea_part5(x)
 
         if self.mode == 'adjust_channel':

@@ -8,6 +8,7 @@ from torch.utils.data import DataLoader
 import numpy as np
 
 
+@torch.no_grad()
 def evaluate_model_with_metrics(
     detector, weights_path, dataset_eval, model_name, training_ds, testing_ds, batch_size=16, device=None, save=False
 ):
@@ -74,6 +75,7 @@ def evaluate_model_with_metrics(
             images = images.to(device)
 
             # Run the model
+            detector.eval()
             probabilities = detector(images)
             all_preds.extend(probabilities[:, 1].cpu().numpy())  # Fake class probability
             all_labels.extend(labels.numpy())  # Collect true labels
