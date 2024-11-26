@@ -2,7 +2,8 @@ name: deep-learning
 channels:
   - defaults
 dependencies:
-  - python==3.12
+  - python==3.10.6
+  - pillow==9.0.1
   - numpy
   - pyyaml
   - matplotlib
@@ -13,5 +14,6 @@ dependencies:
   - pip
   - pandas
   - scikit-learn
+  - transformers
 
 
