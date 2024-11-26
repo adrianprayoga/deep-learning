@@ -16,10 +16,10 @@ if __name__ == '__main__':
     # Change the file below to your local config name
     # run python inference.py from main folder
     PROJECT_DIR = Path(__file__).resolve().parent.parent
-    with open(os.path.join(PROJECT_DIR, 'src/adrian_config.yaml'), 'r') as f:
+    with open(os.path.join(PROJECT_DIR, 'src/config.yaml'), 'r') as f:
         config = yaml.safe_load(f)
 
-    dataset_eval = InferenceDataset(root_dir=config['data_root_dir'], resolution=256)
+    dataset_eval = InferenceDataset(root_dir=config['data_root_dir'], resolution=224, model_name=config['model_type'])
 
     detector = None
     if config['model_type'] == "spsl":

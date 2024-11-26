@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 from transformers import CLIPModel
 from torchvision import models
-import timm 
+import time
 
 class CLIPDetector(nn.Module):
     """

@@ -1,0 +1,6 @@
+model_type: 'spsl'
+data_root_dir: "/Users/adrian.prayoga/omscs/deep_learning/deep-learning-project/dataset/midjourney"
+#data_root_dir: "/Users/adrian.prayoga/omscs/deep_learning/deep-learning-project/dataset/starganv2"
+training_ds: "FS"
+testing_ds: "MJ"
+weights_path: "/Users/adrian.prayoga/omscs/deep_learning/deep-learning-project/weights/spsl_fs.pth"
