@@ -8,6 +8,7 @@ import yaml
 from detectors.spsl_detector import SpslDetector
 from utils.dataloader import InferenceDataset
 from utils.model_loading import CLIPDetector
+from utils.model_loading import XceptionDetector
 from utils.testing import evaluate_model_with_metrics
 
 if __name__ == '__main__':
@@ -34,6 +35,10 @@ if __name__ == '__main__':
         detector = CLIPDetector(num_classes=2)
         weights_path = config["weights_path"]
         model_name = "CLIP_Base"
+    elif config['model_type'] == "xception":
+        detector = XceptionDetector(num_classes=2)
+        weights_path = config["weights_path"]
+        model_name = "XCEPTION"
     else:
         print('model type is not supported!!!')
 

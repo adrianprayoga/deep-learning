@@ -1,6 +1,5 @@
-model_type: 'spsl'
-data_root_dir: "/Users/adrian.prayoga/omscs/deep_learning/deep-learning-project/dataset/midjourney"
-#data_root_dir: "/Users/adrian.prayoga/omscs/deep_learning/deep-learning-project/dataset/starganv2"
+model_type: 'xception'
+data_root_dir: "../../DF40/DeepfakeBench_DF40/deepfakes_detection_datasets/DF40/MidJourney"
 training_ds: "FS"
 testing_ds: "MJ"
-weights_path: "/Users/adrian.prayoga/omscs/deep_learning/deep-learning-project/weights/spsl_fs.pth"
+weights_path: "../../DF40/DeepfakeBench_DF40/weights/xception_fs.pth"

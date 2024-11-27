@@ -15,5 +15,7 @@ dependencies:
   - pandas
   - scikit-learn
   - transformers
-
+  - torch
+  - torchvison
+  - timm
 
