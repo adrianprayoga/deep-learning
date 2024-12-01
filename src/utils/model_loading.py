@@ -2,7 +2,66 @@ import torch
 import torch.nn as nn
 from transformers import CLIPModel
 from torchvision import models
-import time
+import timm
+from detectors.spsl_detector import SpslDetector
+
+def get_detector(type, num_classes=2, load_weights=False, weights_path=None, device='cpu', config=None):
+    model = None
+    if device is None:
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+
+    if type == 'xception':
+        model = XceptionDetector()
+        if load_weights:
+            if weights_path is None:
+                print('Please check, something wrong as we are trying to load weights but path is None')
+                return None
+
+            missing_keys, unexpected_keys = None, None
+            if weights_path is not None:
+                # Load pre-trained weights
+                state_dict = torch.load(weights_path, map_location=device)
+                # Adjust for any prefixes in the state_dict keys (e.g., 'module.')
+                if any(key.startswith("module.") for key in state_dict.keys()):
+                    state_dict = {k.replace("module.", ""): v for k, v in state_dict.items()}
+                # Load the state dictionary with relaxed strictness
+                missing_keys, unexpected_keys = model.load_state_dict(state_dict, strict=False)
+
+            # Optional: Log or handle missing/unexpected keys
+            if missing_keys:
+                print(f"Missing keys: {missing_keys}")
+            if unexpected_keys:
+                print(f"Unexpected keys: {unexpected_keys}")
+    elif type == 'clip':
+        model = CLIPDetector(num_classes=2)
+        if load_weights:
+            if weights_path is None:
+                print('Please check, something wrong as we are trying to load weights but path is None')
+                return None
+
+            missing_keys, unexpected_keys = None, None
+            if weights_path is not None:
+                # Load pre-trained weights
+                state_dict = torch.load(weights_path, map_location=device)
+                # Adjust for any prefixes in the state_dict keys (e.g., 'module.')
+                if any(key.startswith("module.") for key in state_dict.keys()):
+                    state_dict = {k.replace("module.", ""): v for k, v in state_dict.items()}
+                # Load the state dictionary with relaxed strictness
+                missing_keys, unexpected_keys = model.load_state_dict(state_dict, strict=False)
+
+            # Optional: Log or handle missing/unexpected keys
+            if missing_keys:
+                print(f"Missing keys: {missing_keys}")
+            if unexpected_keys:
+                print(f"Unexpected keys: {unexpected_keys}")
+    elif type == 'spsl':
+        if config is None:
+            print('require config')
+            return None
+        model = SpslDetector(config, load_weights=load_weights)
+
+    return model
+
 
 class CLIPDetector(nn.Module):
     """
@@ -42,7 +101,7 @@ class XceptionDetector(nn.Module):
     Xception-based detector for binary classification (real vs fake).
     Optimized for inference.
     """
-    def __init__(self, num_classes=2):
+    def __init__(self, num_classes=2, load_weights=False):
         super().__init__()
         # Load the pretrained Xception model
         self.backbone = timm.create_model('xception', pretrained=True)
