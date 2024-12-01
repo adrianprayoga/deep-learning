@@ -10,7 +10,11 @@ def get_detector(type, num_classes=2, load_weights=False, weights_path=None, dev
     if device is None:
         device = "cuda" if torch.cuda.is_available() else "cpu"
 
+    ## XCEPTION NOT TESTED!!!
     if type == 'xception':
+
+
+
         model = XceptionDetector(num_classes=num_classes)
         if load_weights:
             if weights_path is None:
