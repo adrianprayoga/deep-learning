@@ -52,48 +52,50 @@ from networks import Xception
 
 logger = logging.getLogger(__name__)
 class SpslDetector(nn.Module):
-    def __init__(self, config):
+    def __init__(self, config, load_weights=False):
         super().__init__()
         self.config = config
-        self.backbone = self.build_backbone(config)
+        self.backbone = self.build_backbone(config, load_weights)
         self.loss_func = self.build_loss(config)
 
-    def build_backbone(self, config):
+    def build_backbone(self, config, load_weights):
         # prepare the backbone
         model_config = config['backbone_config']
         backbone = Xception(model_config)
 
+        if load_weights:
+
         # To get a good performance, use the ImageNet-pretrained Xception model
         # pretrained here is path to saved weights
 
-        print('loading trained weights from', config['pretrained'])
-        if config['device'] == 'cpu':
-            state_dict = torch.load(config['pretrained'], map_location=torch.device('cpu'))
-        else:
-            state_dict = torch.load(config['pretrained'])
+            print('loading trained weights from', config['pretrained'])
+            if config['device'] == 'cpu':
+                state_dict = torch.load(config['pretrained'], map_location=torch.device('cpu'))
+            else:
+                state_dict = torch.load(config['pretrained'])
 
-        if any(key.startswith("module.backbone.") for key in state_dict.keys()):
-            state_dict = {k.replace("module.backbone.", ""): v for k, v in state_dict.items()}
-        state_dict = {k: v for k, v in state_dict.items() if 'fc' not in k}
+            if any(key.startswith("module.backbone.") for key in state_dict.keys()):
+                state_dict = {k.replace("module.backbone.", ""): v for k, v in state_dict.items()}
+            state_dict = {k: v for k, v in state_dict.items() if 'fc' not in k}
 
-        remove_first_layer = False
-        if remove_first_layer:
-            # remove conv1 from state_dict
-            conv1_data = state_dict.pop('conv1.weight')
-            missing_keys, unexpected_keys = backbone.load_state_dict(state_dict, strict=False)
+            remove_first_layer = False
+            if remove_first_layer:
+                # remove conv1 from state_dict
+                conv1_data = state_dict.pop('conv1.weight')
+                missing_keys, unexpected_keys = backbone.load_state_dict(state_dict, strict=False)
 
-            logger.info('Load pretrained model from {}'.format(config['pretrained']))
-            # copy on conv1p
-            # let new conv1 use old param to balance the network
-            backbone.conv1 = nn.Conv2d(4, 32, 3, 2, 0, bias=False)
-            avg_conv1_data = conv1_data.mean(dim=1, keepdim=True)  # average across the RGB channels
-            # repeat the averaged weights across the 4 new channels
-            backbone.conv1.weight.data = avg_conv1_data.repeat(1, 4, 1, 1)
-        else:
-            missing_keys, unexpected_keys = backbone.load_state_dict(state_dict, strict=False)
+                logger.info('Load pretrained model from {}'.format(config['pretrained']))
+                # copy on conv1p
+                # let new conv1 use old param to balance the network
+                backbone.conv1 = nn.Conv2d(4, 32, 3, 2, 0, bias=False)
+                avg_conv1_data = conv1_data.mean(dim=1, keepdim=True)  # average across the RGB channels
+                # repeat the averaged weights across the 4 new channels
+                backbone.conv1.weight.data = avg_conv1_data.repeat(1, 4, 1, 1)
+            else:
+                missing_keys, unexpected_keys = backbone.load_state_dict(state_dict, strict=False)
 
-        print("Missing keys:", missing_keys)
-        print("Unexpected keys:", unexpected_keys)
+            print("Missing keys:", missing_keys)
+            print("Unexpected keys:", unexpected_keys)
         return backbone
 
     def build_loss(self, config):
@@ -139,7 +141,6 @@ class SpslDetector(nn.Module):
         pred_dict = {'cls': pred, 'prob': prob, 'feat': features}
 
         print('probability', prob)
-
         return pred_dict['prob']
 
     def phase_without_amplitude(self, img):
