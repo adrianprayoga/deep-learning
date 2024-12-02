@@ -12,9 +12,6 @@ def get_detector(type, num_classes=2, load_weights=False, weights_path=None, dev
 
     ## XCEPTION NOT TESTED!!!
     if type == 'xception':
-
-
-
         model = XceptionDetector(num_classes=num_classes)
         if load_weights:
             if weights_path is None:
@@ -28,6 +25,15 @@ def get_detector(type, num_classes=2, load_weights=False, weights_path=None, dev
                 # Adjust for any prefixes in the state_dict keys (e.g., 'module.')
                 if any(key.startswith("module.") for key in state_dict.keys()):
                     state_dict = {k.replace("module.", ""): v for k, v in state_dict.items()}
+
+                state_dict['backbone.fc.weight'] = state_dict.pop('backbone.last_linear.weight')
+                state_dict['backbone.fc.bias'] = state_dict.pop('backbone.last_linear.bias')
+
+                for key in list(state_dict.keys()):
+                    if "adjust_channel" in key:
+                        print('removing', key, 'as it is unused')
+                        state_dict.pop(key)
+
                 # Load the state dictionary with relaxed strictness
                 missing_keys, unexpected_keys = model.load_state_dict(state_dict, strict=False)
 

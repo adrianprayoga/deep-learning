@@ -1,8 +1,12 @@
-model_type: 'clip'
+# MODEL
+model_type: 'xception'
+weights_path: "/Users/adrian.prayoga/omscs/deep_learning/deep-learning-project/weights/xception_fs.pth"
+training_ds: "FS"
+testing_ds: "MJ"
+
+# DATA
+#data_root_dir: "/Users/adrian.prayoga/omscs/deep_learning/deep-learning-project/dataset/starganv2"
 #data_root_dir: "/Users/adrian.prayoga/omscs/deep_learning/deep-learning-project/dataset/midjourneyoriginal"
 data_root_dir: "/Users/adrian.prayoga/omscs/deep_learning/deep-learning-project/dataset/midjourney"
 saliency_data_root_dir: "/Users/adrian.prayoga/omscs/deep_learning/deep-learning-project/dataset/midjourney_saliency"
-#data_root_dir: "/Users/adrian.prayoga/omscs/deep_learning/deep-learning-project/dataset/starganv2"
-training_ds: "FS"
-testing_ds: "MJ"
-weights_path: "/Users/adrian.prayoga/omscs/deep_learning/deep-learning-project/weights/clip_fs.pth"
+
