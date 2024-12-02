@@ -1,5 +1,13 @@
+# MODEL
 model_type: 'xception'
-data_root_dir: "../../DF40/DeepfakeBench_DF40/deepfakes_detection_datasets/DF40/MidJourney"
+weights_path: "/Users/adrian.prayoga/omscs/deep_learning/deep-learning-project/weights/xception_fs.pth"
 training_ds: "FS"
 testing_ds: "MJ"
-weights_path: "../../DF40/DeepfakeBench_DF40/weights/xception_fs.pth"
+
+# DATA
+#data_root_dir: "/Users/adrian.prayoga/omscs/deep_learning/deep-learning-project/dataset/starganv2"
+#data_root_dir: "/Users/adrian.prayoga/omscs/deep_learning/deep-learning-project/dataset/midjourneyoriginal"
+data_root_dir: "/Users/adrian.prayoga/omscs/deep_learning/deep-learning-project/dataset/midjourney"
+saliency_data_root_dir: "/Users/adrian.prayoga/omscs/deep_learning/deep-learning-project/dataset/midjourney_saliency"
+
+

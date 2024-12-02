@@ -135,8 +135,10 @@ class InferenceDataset(Dataset):
         # Load the image using PIL
         image = Image.open(image_path).convert("RGB")
 
+
         # Resize the image
         image = image.resize((self.resolution, self.resolution), Image.ANTIALIAS)
+        original_image = np.array(image)
 
         # Convert the image to a tensor (C, H, W format)
         image_tensor = torch.tensor(
@@ -149,7 +151,7 @@ class InferenceDataset(Dataset):
         std = torch.tensor([0.5, 0.5, 0.5]).view(3, 1, 1)
         image_tensor = (image_tensor - mean) / std
 
-        return image_tensor, label, image_path
+        return image_tensor, label, image_path, original_image
 
 if __name__ == "__main__":
     # Example for testing the dataset with the given directories
