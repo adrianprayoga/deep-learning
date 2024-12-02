@@ -50,7 +50,7 @@ def evaluate_model_with_metrics(
         for batch in dataloader_eval:
             if i%15 ==0: print(f'batch {i}')
             i+=1
-            images, labels, image_paths = batch
+            images, labels, image_paths, _ = batch
             images = images.to(device)
 
             # Run the model
@@ -62,7 +62,7 @@ def evaluate_model_with_metrics(
             # print('probs', probabilities)
             # print('labels', labels)
             # break
-            
+
 
     print('finished eval')
     # Convert predictions and labels to numpy arrays

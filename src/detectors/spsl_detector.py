@@ -110,21 +110,6 @@ class SpslDetector(nn.Module):
     def classifier(self, features: torch.tensor) -> torch.tensor:
         return self.backbone.classifier(features)
 
-    def get_losses(self, data_dict: dict, pred_dict: dict) -> dict:
-        # # TODO: check whether this matches
-        # label = data_dict['label']
-        # pred = pred_dict['cls']
-        # loss = self.loss_func(pred, label)
-        # loss_dict = {'overall': loss}
-        return {}
-
-    def get_train_metrics(self, data_dict: dict, pred_dict: dict) -> dict:
-        # label = data_dict['label']
-        # pred = pred_dict['cls']
-        # # compute metrics for batch data
-        # auc, eer, acc, ap = calculate_metrics_for_train(label.detach(), pred.detach())
-        # metric_batch_dict = {'acc': acc, 'auc': auc, 'eer': eer, 'ap': ap}
-        return {}
 
     def forward(self, data_dict, inference=False) -> dict:
 

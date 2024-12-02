@@ -1,6 +1,7 @@
 model_type: 'clip'
 #data_root_dir: "/Users/adrian.prayoga/omscs/deep_learning/deep-learning-project/dataset/midjourneyoriginal"
 data_root_dir: "/Users/adrian.prayoga/omscs/deep_learning/deep-learning-project/dataset/midjourney"
+saliency_data_root_dir: "/Users/adrian.prayoga/omscs/deep_learning/deep-learning-project/dataset/midjourney_saliency"
 #data_root_dir: "/Users/adrian.prayoga/omscs/deep_learning/deep-learning-project/dataset/starganv2"
 training_ds: "FS"
 testing_ds: "MJ"
