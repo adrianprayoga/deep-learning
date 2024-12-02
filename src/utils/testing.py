@@ -4,6 +4,8 @@ from .metrics import get_test_metrics
 import torch
 from torch.utils.data import DataLoader
 import numpy as np
+from .result_visualization import visualize_predictions
+import ClassVisualization
 
 
 @torch.no_grad()
@@ -38,7 +40,7 @@ def evaluate_model_with_metrics(
     print('loaded the model')
 
     # Prepare the evaluation DataLoader
-    dataloader_eval = DataLoader(dataset_eval, batch_size=batch_size, shuffle=False)
+    dataloader_eval = DataLoader(dataset_eval, batch_size=batch_size, shuffle=True)
 
     # Collect predictions and labels
     all_preds = []
@@ -71,6 +73,9 @@ def evaluate_model_with_metrics(
 
     print('all_preds ', all_preds )
     print('all labels', all_labels)
+
+    # visualize
+    visualize_predictions(all_preds, all_labels, all_img_names, dataset_eval)
 
     # Calculate metrics
     metrics_result = get_test_metrics(

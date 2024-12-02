@@ -10,3 +10,4 @@ testing_ds: "MJ"
 data_root_dir: "/Users/adrian.prayoga/omscs/deep_learning/deep-learning-project/dataset/midjourney"
 saliency_data_root_dir: "/Users/adrian.prayoga/omscs/deep_learning/deep-learning-project/dataset/midjourney_saliency"
 
+

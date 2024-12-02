@@ -72,7 +72,6 @@ def get_detector(type, num_classes=2, load_weights=False, weights_path=None, dev
 
     return model
 
-
 class CLIPDetector(nn.Module):
     """
     CLIP-based detector for binary classification (real vs fake).
