@@ -93,7 +93,11 @@ if __name__ == '__main__':
         titles = []
 
         for train in ds_types:
-            saliency = Saliency(all_models[model_type][train])
+            model = all_models[model_type][train]
+            argmax = torch.argmax(model(X_tensor), dim=1)
+            print('prediction', model_type, train, argmax)
+
+            saliency = Saliency(model)
             attr_ig = compute_attributions(saliency, X_tensor, target=y_tensor)
             titles.append(model_type + "_" + train)
             attributes.append(attr_ig)

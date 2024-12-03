@@ -31,7 +31,7 @@ def get_detector(type, num_classes=2, load_weights=False, weights_path=None, dev
 
                 for key in list(state_dict.keys()):
                     if "adjust_channel" in key:
-                        print('removing', key, 'as it is unused')
+                        # print('removing', key, 'as it is unused')
                         state_dict.pop(key)
 
                 # Load the state dictionary with relaxed strictness
