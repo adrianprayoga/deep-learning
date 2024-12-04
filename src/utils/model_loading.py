@@ -3,7 +3,6 @@ import torch.nn as nn
 from transformers import CLIPModel
 from torchvision import models
 import timm
-from src.detectors.spsl_detector import SpslDetector
 
 def get_detector(type, num_classes=2, load_weights=False, weights_path=None, device='cpu', config=None):
     model = None
@@ -65,10 +64,38 @@ def get_detector(type, num_classes=2, load_weights=False, weights_path=None, dev
             if unexpected_keys:
                 print(f"Unexpected keys: {unexpected_keys}")
     elif type == 'spsl':
-        if config is None:
-            print('require config')
-            return None
+
         model = SpslDetector(config, load_weights=True)
+        if load_weights:
+            if weights_path is None:
+                print('Please check, something wrong as we are trying to load weights but path is None')
+                return None
+
+            missing_keys, unexpected_keys = None, None
+            if weights_path is not None:
+                # Load pre-trained weights
+                state_dict = torch.load(weights_path, map_location=device)
+                # Adjust for any prefixes in the state_dict keys (e.g., 'module.')
+                if any(key.startswith("module.") for key in state_dict.keys()):
+                    state_dict = {k.replace("module.", ""): v for k, v in state_dict.items()}
+
+                state_dict['backbone.fc.weight'] = state_dict.pop('backbone.last_linear.weight')
+                state_dict['backbone.fc.bias'] = state_dict.pop('backbone.last_linear.bias')
+
+                for key in list(state_dict.keys()):
+                    if "adjust_channel" in key:
+                        state_dict.pop(key)
+
+                # Load the state dictionary with relaxed strictness
+                missing_keys, unexpected_keys = model.load_state_dict(state_dict, strict=True)
+
+            # Optional: Log or handle missing/unexpected keys
+            if missing_keys:
+                print(f"Missing keys: {missing_keys}")
+            if unexpected_keys:
+                print(f"Unexpected keys: {unexpected_keys}")
+            if not missing_keys and not unexpected_keys:
+                print("all weights are fully loaded")
 
     return model
 
@@ -134,3 +161,71 @@ class XceptionDetector(nn.Module):
         logits = self.backbone(image_tensor)
         probabilities = torch.softmax(logits, dim=-1)
         return probabilities
+
+class SpslDetector(nn.Module):
+    def __init__(self, config, load_weights=False):
+        super().__init__()
+        self.config = config
+        self.backbone = self.build_backbone()
+        # self.loss_func = self.build_loss(config)
+
+    def build_backbone(self, num_classes=2):
+        # prepare the backbone
+        # model_config = config['backbone_config']
+        # backbone = Xception(model_config)
+        backbone = timm.create_model('xception', pretrained=True)
+        # Replace the classifier head for binary classification
+        num_features = backbone.get_classifier().in_features
+        backbone.fc = nn.Linear(num_features, num_classes)
+
+        # if load_weights:
+        #
+        # # To get a good performance, use the ImageNet-pretrained Xception model
+        # # pretrained here is path to saved weights
+        #     if config['device'] == 'cpu':
+        #         state_dict = torch.load(config['pretrained'], map_location=torch.device('cpu'))
+        #     else:
+        #         state_dict = torch.load(config['pretrained'])
+        #
+        #     if any(key.startswith("module.backbone.") for key in state_dict.keys()):
+        #         state_dict = {k.replace("module.backbone.", ""): v for k, v in state_dict.items()}
+        #     state_dict = {k: v for k, v in state_dict.items() if 'fc' not in k}
+        #
+        #     remove_first_layer = False
+        backbone.conv1 = nn.Conv2d(4, 32, 3, 2, 0, bias=False)
+
+        #     else:
+        #         missing_keys, unexpected_keys = backbone.load_state_dict(state_dict, strict=False)
+        #
+        #     print("Missing keys:", missing_keys)
+        #     print("Unexpected keys:", unexpected_keys)
+        return backbone
+
+    def forward(self, data_dict, inference=False):
+        # get the phase features
+        phase_fea = self.phase_without_amplitude(data_dict)
+        # bp
+        features = torch.cat((data_dict, phase_fea), dim=1)
+        # get the prediction by classifier
+        logits = self.backbone(features)
+        # get the probability of the pred
+        prob = torch.softmax(logits, dim=1)
+        # build the prediction dict for each output
+        # pred_dict = {'cls': pred, 'prob': prob, 'feat': features}
+        return prob
+
+    def phase_without_amplitude(self, img):
+        # Convert to grayscale
+        # print(img)
+        gray_img = torch.mean(img.to(torch.float32), dim=1, keepdim=True)  # shape: (batch_size, 1, 256, 256)
+        # Compute the DFT of the input signal
+        X = torch.fft.fftn(gray_img, dim=(-1, -2))
+        # X = torch.fft.fftn(img)
+        # Extract the phase information from the DFT
+        phase_spectrum = torch.angle(X)
+        # Create a new complex spectrum with the phase information and zero magnitude
+        reconstructed_X = torch.exp(1j * phase_spectrum)
+        # Use the IDFT to obtain the reconstructed signal
+        reconstructed_x = torch.real(torch.fft.ifftn(reconstructed_X, dim=(-1, -2)))
+        # reconstructed_x = torch.real(torch.fft.ifftn(reconstructed_X))
+        return reconstructed_x
