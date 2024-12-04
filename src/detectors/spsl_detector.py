@@ -48,7 +48,7 @@ import torch.nn as nn
 # TODO: to add back
 # from metrics.base_metrics_class import calculate_metrics_for_train
 
-from networks import Xception
+from src.networks import Xception
 
 logger = logging.getLogger(__name__)
 class SpslDetector(nn.Module):

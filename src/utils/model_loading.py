@@ -3,7 +3,7 @@ import torch.nn as nn
 from transformers import CLIPModel
 from torchvision import models
 import timm
-from detectors.spsl_detector import SpslDetector
+from src.detectors.spsl_detector import SpslDetector
 
 def get_detector(type, num_classes=2, load_weights=False, weights_path=None, device='cpu', config=None):
     model = None
