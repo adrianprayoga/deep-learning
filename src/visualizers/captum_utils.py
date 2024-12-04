@@ -20,7 +20,6 @@ def visualize_attr_maps(path, X, y, class_names, attributions, titles, attr_prep
                       are visualized at once, this would be applied on each infividual image for each attribution
                       i.e attr_preprocess(attributions[j][i])
     '''
-    print('X shape', X.shape)
 
     N = attributions[0].shape[0]
     plt.figure()

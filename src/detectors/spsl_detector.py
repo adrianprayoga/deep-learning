@@ -124,8 +124,6 @@ class SpslDetector(nn.Module):
         # build the prediction dict for each output
         # prob takes the probability that it is label 1 --> fake/real?
         pred_dict = {'cls': pred, 'prob': prob, 'feat': features}
-
-        print('probability', prob)
         return pred_dict['prob']
 
     def phase_without_amplitude(self, img):
