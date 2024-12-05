@@ -9,7 +9,6 @@ from visualizers.image_utils import preprocess
 from utils.dataloader import InferenceDataset
 from utils.model_loading import get_detector
 from visualizers.captum_utils import *
-from utils.config_utils import load_model_config
 
 plt.rcParams['figure.figsize'] = (10.0, 8.0) # set default size of plots
 plt.rcParams['image.interpolation'] = 'nearest'
@@ -26,7 +25,6 @@ def get_all_models(config):
         for train in ds_types:
             weight_conf = model_type +"_" + train + "_path"
             model = get_detector(model_type,
-                                 config=load_model_config(model_type, weights_path=config[weight_conf]),
                                  load_weights=True,
                                  weights_path=config[weight_conf])
             for param in model.parameters():
@@ -91,11 +89,17 @@ if __name__ == '__main__':
     for model_type in model_types:
         attributes = []
         titles = []
+        preds = []
 
         for train in ds_types:
             model = all_models[model_type][train]
             argmax = torch.argmax(model(X_tensor), dim=1)
-            print('prediction', model_type, train, argmax)
+            correct_prediction = torch.eq(y_tensor, argmax)
+            preds.append(correct_prediction.detach().cpu().numpy())
+
+            # print(y_tensor)
+            # print(torch.eq(y_tensor, argmax))
+            # print('prediction', model_type, train, argmax)
 
             saliency = Saliency(model)
             attr_ig = compute_attributions(saliency, X_tensor, target=y_tensor)
@@ -103,7 +107,7 @@ if __name__ == '__main__':
             attributes.append(attr_ig)
 
             visualize_attr_maps('visualization/saliency/'+model_type+'.png', all_original_images, y_tensor, class_names,
-                                attributes, titles)
+                                attributes, titles, preds)
 
     # GRADCAM
     for model_type in model_types:
@@ -112,9 +116,13 @@ if __name__ == '__main__':
 
         attributes = []
         titles = []
+        preds = []
 
         for train in ds_types:
             model = all_models[model_type][train]
+            argmax = torch.argmax(model(X_tensor), dim=1)
+            correct_prediction = torch.eq(y_tensor, argmax)
+            preds.append(correct_prediction.detach().cpu().numpy())
             conv_module = model.backbone.conv4
             # conv_module = model.backbone.encoder.layers[11].self_attn.out_proj
 
@@ -126,7 +134,7 @@ if __name__ == '__main__':
             # print('attr_ig', attr_ig.shape)
 
             visualize_attr_maps('visualization/gradcam/'+model_type+'.png', all_original_images, y_tensor, class_names,
-                                attributes, titles)
+                                attributes, titles, preds)
 
 
 

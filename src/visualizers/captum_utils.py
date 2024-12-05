@@ -1,7 +1,9 @@
 import matplotlib.pyplot as plt
 import numpy as np
+from matplotlib.patches import Rectangle
 
-def visualize_attr_maps(path, X, y, class_names, attributions, titles, attr_preprocess=lambda attr: attr.permute(1, 2, 0).detach().numpy(),
+
+def visualize_attr_maps(path, X, y, class_names, attributions, titles, pred, attr_preprocess=lambda attr: attr.permute(1, 2, 0).detach().numpy(),
                         cmap='viridis', alpha=0.7):
     '''
     A helper function to visualize captum attributions for a list of captum attribution algorithms.
@@ -42,6 +44,18 @@ def visualize_attr_maps(path, X, y, class_names, attributions, titles, attr_prep
             attr = attr.clip(0.0, 1.0)
             plt.imshow(attr, cmap=cmap, alpha=alpha)
             plt.axis('off')
+
+            ax = plt.gca()  # Get current axis
+            rect = Rectangle(
+                (0, 0),  # Bottom-left corner
+                attr.shape[1],  # Width
+                attr.shape[0],  # Height
+                linewidth=8,  # Border thickness
+                edgecolor='lightgreen' if pred[j][i] else 'lightcoral',  # Border color
+                facecolor='none'  # No fill
+            )
+            ax.add_patch(rect)
+
         plt.subplot(len(attributions) + 1, N + 1, (N + 1) * (j + 1) + N + 1)
         plt.text(0.0, 0.5, titles[j], fontsize=14)
         plt.axis('off')

@@ -6,13 +6,13 @@ weights_path: "/Users/adrian.prayoga/omscs/deep_learning/deep-learning-project/w
 #model_type: 'spsl'
 #weights_path: "/Users/adrian.prayoga/omscs/deep_learning/deep-learning-project/weights/spsl_fs.pth"
 training_ds: "FS"
-testing_ds: "MJ"
+testing_ds: "stargan"
 
 # DATA
-#data_root_dir: "/Users/adrian.prayoga/omscs/deep_learning/deep-learning-project/dataset/starganv2"
+data_root_dir: "/Users/adrian.prayoga/omscs/deep_learning/deep-learning-project/dataset/starganv2"
 #data_root_dir: "/Users/adrian.prayoga/omscs/deep_learning/deep-learning-project/dataset/midjourneyoriginal"
-data_root_dir: "/Users/adrian.prayoga/omscs/deep_learning/deep-learning-project/dataset/midjourney"
-viz_data_root_dir: "/Users/adrian.prayoga/omscs/deep_learning/deep-learning-project/dataset/midjourney_saliency"
+#data_root_dir: "/Users/adrian.prayoga/omscs/deep_learning/deep-learning-project/dataset/midjourney"
+viz_data_root_dir: "/Users/adrian.prayoga/omscs/deep_learning/deep-learning-project/dataset/viz"
 
 # VISUALIZATION
 clip_fs_path: "/Users/adrian.prayoga/omscs/deep_learning/deep-learning-project/weights/clip_fs.pth"
