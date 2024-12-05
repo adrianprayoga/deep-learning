@@ -56,7 +56,10 @@ def check_and_copy(path_to_mj_dataset, path_to_stargan_dataset, folder, filename
     elif isfile(join(path_to_stargan_dataset, folder, filename)):
         shutil.copy(join(path_to_stargan_dataset, folder, filename), join(copy_path, identifier+"_"+filename))
     else:
-        print('file does not exist', filename, identifier)
+        print('file does not exist', filename, identifier,
+              '\n', join(path_to_mj_dataset, folder, filename),
+              '\n', join(path_to_stargan_dataset, folder, filename)
+              )
 
 def get_images(path_to_mj_dataset, path_to_stargan_dataset):
     pth = 'outputs/cleaned_outputs'

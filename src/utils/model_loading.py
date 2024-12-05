@@ -63,8 +63,7 @@ def get_detector(type, num_classes=2, load_weights=False, weights_path=None, dev
             if unexpected_keys:
                 print(f"Unexpected keys: {unexpected_keys}")
     elif type == 'spsl':
-
-        model = SpslDetector(config, load_weights=True)
+        model = SpslDetector(load_weights=True)
         if load_weights:
             if weights_path is None:
                 print('Please check, something wrong as we are trying to load weights but path is None')
@@ -162,9 +161,8 @@ class XceptionDetector(nn.Module):
         return probabilities
 
 class SpslDetector(nn.Module):
-    def __init__(self, config, load_weights=False):
+    def __init__(self, load_weights=False):
         super().__init__()
-        self.config = config
         self.backbone = self.build_backbone()
         # self.loss_func = self.build_loss(config)
 

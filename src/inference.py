@@ -5,7 +5,6 @@ from pathlib import Path
 import torch
 import yaml
 
-from utils.config_utils import load_model_config
 from utils.model_loading import get_detector
 from utils.dataloader import InferenceDataset
 from utils.testing import evaluate_model_with_metrics
@@ -20,7 +19,6 @@ if __name__ == '__main__':
         config = yaml.safe_load(f)
     dataset_eval = InferenceDataset(root_dir=config['data_root_dir'], resolution=224, model_name=config['model_type'])
     detector = get_detector(config['model_type'],
-                            config=load_model_config(config['model_type']),
                             load_weights=True,
                             weights_path=config["weights_path"])
 
