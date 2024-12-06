@@ -75,7 +75,7 @@ def main():
             model = CLIPFineTuneDetector(config=config).to(config.device)
 
             # Set optimizer and loss function
-            optimizer = AdamW(model.parameters(), lr=config.learning_rate, weight_decay=0.01 if not config.use_lora else 0)
+            optimizer = AdamW(model.parameters(), lr=config.learning_rate, weight_decay=0.05 if not config.use_lora else 0)
             criterion = torch.nn.CrossEntropyLoss()
             
             best_val_metric = float('-inf')  # or float('inf') for metrics like loss

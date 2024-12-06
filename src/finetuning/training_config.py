@@ -14,7 +14,7 @@ class TrainingConfig:
         self.val_dataset1_name = os.path.basename(self.val_dataset1)
         self.val_dataset2 = "/home/ginger/code/gderiddershanghai/deep-learning/data/starganv2"
         self.val_dataset2_name = os.path.basename(self.val_dataset2)
-        self.csv_path = "/home/ginger/code/gderiddershanghai/deep-learning/outputs/finetune_results/training_metrics_JDB_random_hegyncollab_reals.csv"
+        self.csv_path = "/home/ginger/code/gderiddershanghai/deep-learning/outputs/finetune_results/training_metrics_JDB_random_hegyncollab_realsv2.csv"
         self.checkpoint_dir = "/home/ginger/code/gderiddershanghai/deep-learning/weights_finetuned"
         os.makedirs(os.path.dirname(self.csv_path), exist_ok=True)
         os.makedirs(self.checkpoint_dir, exist_ok=True)
@@ -29,15 +29,15 @@ class TrainingConfig:
         self.augment_data = True  # Whether data augmentation is applied
         self.lora_config = LoraConfig(
         # task_type=TaskType.FEATURE_EXTRACTION, 
-        r=8, 
-        lora_alpha=32, 
+        r=16, 
+        lora_alpha=64, 
         target_modules=None, 
         lora_dropout=0.1, 
         bias="none"
         )
 
         # Training hyperparameters
-        self.learning_rate = 1e-4 if self.use_lora else 1e-5
+        self.learning_rate = 2e-3 if self.use_lora else 1e-6
         self.batch_size = 32
         self.epochs = 10
         self.current_epoch = 0
