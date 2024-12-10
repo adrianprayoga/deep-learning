@@ -1,13 +1,26 @@
 # MODEL
-model_type: 'xception'
-weights_path: "/Users/adrian.prayoga/omscs/deep_learning/deep-learning-project/weights/xception_fs.pth"
+#model_type: 'xception'
+#weights_path: "/Users/adrian.prayoga/omscs/deep_learning/deep-learning-project/weights/xception_fs.pth"
+model_type: 'clip'
+weights_path: "/Users/adrian.prayoga/omscs/deep_learning/deep-learning-project/weights/clip_fs.pth"
+#model_type: 'spsl'
+#weights_path: "/Users/adrian.prayoga/omscs/deep_learning/deep-learning-project/weights/spsl_fs.pth"
 training_ds: "FS"
-testing_ds: "MJ"
+testing_ds: "stargan"
 
 # DATA
-#data_root_dir: "/Users/adrian.prayoga/omscs/deep_learning/deep-learning-project/dataset/starganv2"
+data_root_dir: "/Users/adrian.prayoga/omscs/deep_learning/deep-learning-project/dataset/starganv2"
 #data_root_dir: "/Users/adrian.prayoga/omscs/deep_learning/deep-learning-project/dataset/midjourneyoriginal"
-data_root_dir: "/Users/adrian.prayoga/omscs/deep_learning/deep-learning-project/dataset/midjourney"
-saliency_data_root_dir: "/Users/adrian.prayoga/omscs/deep_learning/deep-learning-project/dataset/midjourney_saliency"
+#data_root_dir: "/Users/adrian.prayoga/omscs/deep_learning/deep-learning-project/dataset/midjourney"
+viz_data_root_dir: "/Users/adrian.prayoga/omscs/deep_learning/deep-learning-project/dataset/viz"
 
-
+# VISUALIZATION
+clip_fs_path: "/Users/adrian.prayoga/omscs/deep_learning/deep-learning-project/weights/clip_fs.pth"
+clip_fr_path: "/Users/adrian.prayoga/omscs/deep_learning/deep-learning-project/weights/clip_fr.pth"
+clip_efs_path: "/Users/adrian.prayoga/omscs/deep_learning/deep-learning-project/weights/clip_efs.pth"
+spsl_fs_path: "/Users/adrian.prayoga/omscs/deep_learning/deep-learning-project/weights/spsl_fs.pth"
+spsl_fr_path: "/Users/adrian.prayoga/omscs/deep_learning/deep-learning-project/weights/spsl_fr.pth"
+spsl_efs_path: "/Users/adrian.prayoga/omscs/deep_learning/deep-learning-project/weights/spsl_efs.pth"
+xception_fs_path: "/Users/adrian.prayoga/omscs/deep_learning/deep-learning-project/weights/xception_fs.pth"
+xception_fr_path: "/Users/adrian.prayoga/omscs/deep_learning/deep-learning-project/weights/xception_fr.pth"
+xception_efs_path: "/Users/adrian.prayoga/omscs/deep_learning/deep-learning-project/weights/xception_efs.pth"

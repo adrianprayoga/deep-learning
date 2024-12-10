@@ -1,1 +1,0 @@
-from .spsl_detector import SpslDetector
