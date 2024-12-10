@@ -1,36 +1,48 @@
 import os
 import shutil
 
-def flatten_directory(base_path, subfolder=None):
+def flatten_directory(base_path, target_folder, subfolder=None):
     """
-    Flattens a directory structure by moving all files to the base path
+    Flattens a directory structure by moving all files to the target folder
     and renaming them to ensure unique names.
-    Usefull for heygen, COllabDif, SiT datasets
     """
-    target_path = os.path.join(base_path, subfolder) if subfolder else base_path
-    i = 0
+    source_path = os.path.join(base_path, subfolder) if subfolder else base_path
+    target_path = os.path.join(base_path, target_folder)
+
+    if not os.path.exists(target_path):
+        os.makedirs(target_path)
+
+    file_counter = 0
     dirs_to_remove = []
-    
-    for root, dirs, files in os.walk(target_path):
+
+    for root, dirs, files in os.walk(source_path):
         for file in files:
-            i+=1
+            file_counter += 1
             file_path = os.path.join(root, file)
             file_name, file_ext = os.path.splitext(file)
-            unique_name = f"{file_name}_{i}{file_ext}"
-            dest_path = os.path.join(base_path, unique_name)
-            shutil.move(file_path, dest_path)
-        for dir_name in dirs:
-            dirs_to_remove.append(os.path.join(root, dir_name))
-    
-    # Check if it works first!!!!
-    for dir_path in dirs_to_remove:
-        if os.path.isdir(dir_path):
-            os.rmdir(dir_path)
+            
+            unique_name = f"{file_name}_{file_counter:06d}{file_ext}"
+            dest_path = os.path.join(target_path, unique_name)
 
+            try:
+                shutil.move(file_path, dest_path)
+                print(f"Moved: {file_path} -> {dest_path}")
+            except Exception as e:
+                print(f"Error moving {file_path}: {e}")
+
+        if root != source_path:
+            dirs_to_remove.append(root)
+
+    for dir_path in dirs_to_remove:
+        try:
+            os.rmdir(dir_path)
+            print(f"Removed empty directory: {dir_path}")
+        except OSError as e:
+            print(f"Failed to remove directory {dir_path}: {e}")
+
+    print(f"Flattened {file_counter} files into {target_path}.")
 
 if __name__ == "__main__":
-    fake_base_fp = 'data/CollabDiff/fake/'
-    real_base_fp = 'data/CollabDiff/real/'
-
-    flatten_directory(fake_base_fp, None)
-    print("Directories flattened successfully.")
+    # def flatten_directory(base_path, target_folder, subfolder=None):
+    base_fp = '/home/ginger/code/gderiddershanghai/deep-learning/data/hyperreenact/'
+    flatten_directory(base_fp, "real", "cropped_images")

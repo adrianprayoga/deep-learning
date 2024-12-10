@@ -1,4 +1,3 @@
-
 # Yolo Implementation doesn't work too well
 # from ultralytics import YOLO
 # import cv2
@@ -42,7 +41,7 @@ import random
 
 
 def function_testing(fp):
-    print(f'Proces file: {fp}')
+    print(f'processing this file: {fp}')
     mp_face_detection = mp.solutions.face_detection
 
     image = cv2.imread(fp)
@@ -74,9 +73,9 @@ def function_testing(fp):
             plt.title(f" Detected Face: {os.path.basename(fp)}")
             plt.show()
         else:
-            print(f"No faces detected in {fp}")
+            print(f"No faces in {fp}")
 
-def crop_and_save_faces(input_dir, output_dir, noface_dir, csv_path, img_col):
+def crop_and_save_faces(input_dir, output_dir, noface_dir, csv_path, img_col, crop=False):
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
     if not os.path.exists(noface_dir):
@@ -90,55 +89,62 @@ def crop_and_save_faces(input_dir, output_dir, noface_dir, csv_path, img_col):
 
     mp_face_detection = mp.solutions.face_detection
 
-    with mp_face_detection.FaceDetection(model_selection=1, min_detection_confidence=0.3) as face_detection:
+    with mp_face_detection.FaceDetection(model_selection=1, min_detection_confidence=0.175) as face_detection:
         for i, img_name in enumerate(os.listdir(input_dir)):
+            # if i==1: break
             full_path = os.path.join(input_dir, img_name)
-            
-            if csv_path: 
-                img_check = img_name in valid_images
-            if not csv_path: img_check=True
+            img_check = img_name in valid_images if csv_path else True
             
             if os.path.isfile(full_path) and img_check:
                 image = cv2.imread(full_path)
+                if image is None:
+                    print(f"Failed to load image: {full_path}. Skipping...")
+                    skipped_count += 1
+                    continue
                 image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
                 results = face_detection.process(image_rgb)
 
                 if results.detections:
-                    best_face = max(results.detections, key=lambda d: d.score[0])
-                    bboxC = best_face.location_data.relative_bounding_box
-                    h, w, _ = image.shape
-                    x_min = int(bboxC.xmin * w)
-                    y_min = int(bboxC.ymin * h)
-                    x_max = int((bboxC.xmin + bboxC.width) * w)
-                    y_max = int((bboxC.ymin + bboxC.height) * h)
+                    if crop:
+                        best_face = max(results.detections, key=lambda d: d.score[0])
+                        bboxC = best_face.location_data.relative_bounding_box
+                        h, w, _ = image.shape
+                        x_min = int(bboxC.xmin * w)
+                        y_min = int(bboxC.ymin * h)
+                        x_max = int((bboxC.xmin + bboxC.width) * w)
+                        y_max = int((bboxC.ymin + bboxC.height) * h)
 
-                    padding = random.uniform(0.07, 0.13)
-                    x_min = max(0, int(x_min - padding * w))
-                    y_min = max(0, int(y_min - padding * h))
-                    x_max = min(w, int(x_max + padding * w))
-                    y_max = min(h, int(y_max + padding * h))
+                        padding = random.uniform(0.07, 0.13)
+                        x_min = max(0, int(x_min - padding * w))
+                        y_min = max(0, int(y_min - padding * h))
+                        x_max = min(w, int(x_max + padding * w))
+                        y_max = min(h, int(y_max + padding * h))
 
-                    cropped_face = image[y_min:y_max, x_min:x_max]
-                    save_path = os.path.join(output_dir, img_name)
-                    cv2.imwrite(save_path, cropped_face)
-                    processed_count += 1
-                else:
-                    skipped_count += 1
-                    if skipped_count % 100 == 0:
-                        print(f"Skipped {skipped_count} images so far (no face detected).")
-                    save_path = os.path.join(noface_dir, img_name)
-                    cv2.imwrite(save_path, image_rgb)
+                        cropped_face = image[y_min:y_max, x_min:x_max]
 
-                try:
-                    os.remove(full_path)
-                except Exception as e:
-                    print(f"Error deleting {full_path}: {e}")
+                        save_path = os.path.join(output_dir, img_name)
+                        try:
+                            if not cv2.imwrite(save_path, cropped_face):
+                                print(f"Failed to save cropped face for {img_name}.")
+                            processed_count += 1
+                        except Exception as e:
+                            print(f"Error saving {save_path}: {e}")
+                    else:
+                        skipped_count += 1
+                        if skipped_count % 100 == 0:
+                            print(f"Skipped {skipped_count} images so far (no face detected).")
+                        no_face_path = os.path.join(noface_dir, img_name)
+                        cv2.imwrite(no_face_path, image_rgb)
 
-            if i % 500 == 0 and i > 0:
-                print(f"Processed {i} images so far.")
+                    try:
+                        os.remove(full_path)
+                    except Exception as e:
+                        print(f"Error deleting {full_path}: {e}")
 
-    print(f"Processed {processed_count} images. Skipped {skipped_count} images with no face detected.")
+                if i % 500 == 0 and i > 0:
+                    print(f"Processed {i} images so far.")
 
+    print(f"Processed {processed_count} images. Skipped {skipped_count} images with no face.")
 
 
 if __name__ == "__main__":
@@ -147,11 +153,14 @@ if __name__ == "__main__":
     #     full_path = os.path.join(directory, fp)
     #     if os.path.isfile(full_path):
     #         function_testing(full_path)
-    input_directory = '/home/ginger/code/gderiddershanghai/deep-learning/data/JDB/fake'
-    output_directory = '/home/ginger/code/gderiddershanghai/deep-learning/data/JDB/cropped_faces_extra'
-    no_face_directory = '/home/ginger/code/gderiddershanghai/deep-learning/data/JDB/no_faces_extra'
-    csv_file = '/home/ginger/code/gderiddershanghai/deep-learning/data/jdb_info.csv'
-    image_column = 'img_path'
+    input_directory = "/home/ginger/code/gderiddershanghai/deep-learning/data/JDB_random/real"
+    # input_directory = os.path.expanduser("~/fiftyone/coco-2017/train/data")
 
-    crop_and_save_faces(input_directory, output_directory, no_face_directory, None, image_column)
+
+    output_directory = "/home/ginger/code/gderiddershanghai/deep-learning/data/JDB_random/face"
+    no_face_directory = "/home/ginger/code/gderiddershanghai/deep-learning/data/JDB_random/no_face"
+    csv_file = None #'/home/ginger/code/gderiddershanghai/deep-learning/data/jdb_info.csv'
+    image_column = 'img_path'
+    crop = False
+    crop_and_save_faces(input_directory, output_directory, no_face_directory, csv_file, image_column, crop)
 

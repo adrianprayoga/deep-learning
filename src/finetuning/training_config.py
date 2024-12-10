@@ -9,18 +9,22 @@ class TrainingConfig:
     def __init__(self):
         # Paths
         self.model_weights = '/home/ginger/code/gderiddershanghai/deep-learning/weights/clip_DF40/clip.pth'
-        self.train_dataset = "/home/ginger/code/gderiddershanghai/deep-learning/data/JDB_random_hegyncollab_reals"
+        # self.train_dataset = "/home/ginger/code/gderiddershanghai/deep-learning/data/JDB_random"
+        self.train_dataset = "mixed"
         self.val_dataset1 = "/home/ginger/code/gderiddershanghai/deep-learning/data/MidJourney"
         self.val_dataset1_name = os.path.basename(self.val_dataset1)
         self.val_dataset2 = "/home/ginger/code/gderiddershanghai/deep-learning/data/starganv2"
         self.val_dataset2_name = os.path.basename(self.val_dataset2)
-        self.csv_path = "/home/ginger/code/gderiddershanghai/deep-learning/outputs/finetune_results/training_metrics_JDB_random_hegyncollab_realsv2.csv"
+        self.val_dataset3 = "/home/ginger/code/gderiddershanghai/deep-learning/data/heygen"
+        self.val_dataset3_name = os.path.basename(self.val_dataset3)
+        
+        self.csv_path = f"/home/ginger/code/gderiddershanghai/deep-learning/outputs/finetune_results/FINE_metrics_{os.path.basename(self.train_dataset)}.csv"
         self.checkpoint_dir = "/home/ginger/code/gderiddershanghai/deep-learning/weights_finetuned"
         os.makedirs(os.path.dirname(self.csv_path), exist_ok=True)
         os.makedirs(self.checkpoint_dir, exist_ok=True)
 
         # Dataset settings
-        self.dataset_size = 2000
+        self.dataset_size = 200
 
         # Model settings
 
@@ -30,20 +34,22 @@ class TrainingConfig:
         self.lora_config = LoraConfig(
         # task_type=TaskType.FEATURE_EXTRACTION, 
         r=16, 
-        lora_alpha=64, 
+        lora_alpha=32, 
         target_modules=None, 
-        lora_dropout=0.1, 
+        lora_dropout=0.2, 
         bias="none"
         )
 
         # Training hyperparameters
-        self.learning_rate = 2e-3 if self.use_lora else 1e-6
+        self.learning_rate = 1e-3 if self.use_lora else 5e-6
         self.batch_size = 32
-        self.epochs = 10
+        self.epochs = 5
         self.current_epoch = 0
         self.loss = None
         self.optimizer = "AdamW"
         self.loss_function = "CrossEntropyLoss"
+        self.use_weight_decay = False
+        self.weight_decay = 0.01
 
         # Resolution and device
         self.resolution = 224  # Image resolution (e.g., 224x224 for CLIP)
@@ -52,6 +58,70 @@ class TrainingConfig:
         # Reproducibility
         self.seed = 42
         
+        
+    def update_hyperparams(self):
+        """
+        Update learning rate, weight decay, and LoRA configuration based on LoRA usage and dataset size.
+        """
+        self.csv_path = f"/home/ginger/code/gderiddershanghai/deep-learning/outputs/finetune_results/FINE_metrics_{os.path.basename(self.train_dataset)}.csv"
+        
+        # Handle very small datasets
+        if self.dataset_size <= 500:
+            print("Warning: Dataset size is very small; overfitting risk is high.")
+            
+            if self.use_lora:
+                self.learning_rate = 1.5e-3  # Updated
+                self.lora_config.lora_alpha = 16  
+                self.lora_config.lora_dropout = 0.3  
+                self.use_weight_decay = False
+                self.weight_decay = 0.0
+            else: 
+                self.learning_rate = 3e-4  # Updated
+                self.use_weight_decay = True
+                self.weight_decay = 0.05  
+
+        else:
+            if self.use_lora:
+                if self.dataset_size < 2000:
+                    self.learning_rate = 9e-4  # Updated
+                    self.lora_config.lora_alpha = 16
+                elif self.dataset_size <= 10000:
+                    self.learning_rate = 4e-4  # Updated
+                    self.lora_config.lora_alpha = 32
+                else:
+                    self.learning_rate = 1.8e-4  # Updated
+                    self.lora_config.r = 16
+                    self.lora_config.lora_alpha = 64
+                    self.lora_config.lora_dropout = 0.1
+
+                self.use_weight_decay = False
+                self.weight_decay = 0.0
+
+            else: 
+                if self.dataset_size <= 2000:
+                    self.learning_rate = 4e-5  # Updated
+                elif self.dataset_size <= 10000:
+                    self.learning_rate = 2e-5  # Updated
+                else:
+                    self.learning_rate = 1e-5  # Updated
+
+                self.use_weight_decay = True
+                self.weight_decay = 0.01
+
+        # Print updated values for confirmation
+        print(f"Updated Hyperparameters:")
+        print(f" - Learning Rate: {self.learning_rate}")
+        print(f" - Use Weight Decay: {self.use_weight_decay}")
+        print(f" - Weight Decay: {self.weight_decay}")
+        print(f" - Dataset Size: {self.dataset_size}")
+
+        # Print LoRA-specific configuration details
+        if self.use_lora:
+            print(f" - LoRA Alpha: {self.lora_config.lora_alpha}")
+            print(f" - LoRA Rank (r): {self.lora_config.r}")
+            print(f" - LoRA Dropout: {self.lora_config.lora_dropout}")
+
+
     def save_config(self, path=None):
         """
         Save the configuration to a JSON file for reproducibility.
