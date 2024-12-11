@@ -5,6 +5,7 @@ import albumentations as A
 from albumentations.pytorch.transforms import ToTensorV2
 from training_config import TrainingConfig  # Assuming your config file is named training_config.py
 import torch
+import random
 
 class TrainingDataset(Dataset):
     def __init__(self, config: TrainingConfig):
@@ -18,15 +19,50 @@ class TrainingDataset(Dataset):
         self.image_paths = {0: [], 1: []}  # Separate by label
         self.labels = []
 
-        for label, subdir in enumerate(['real', 'fake']):  # 0 for real, 1 for fake
-            subdir_path = os.path.join(self.root_dir, subdir)
-            if not os.path.exists(subdir_path):
-                raise ValueError(f"Subdirectory '{subdir}' not found in {self.root_dir}.")
+        if self.config.train_dataset == 'mixed':
+            mixed_datasets = {
+                '/home/ginger/code/gderiddershanghai/deep-learning/data/JDB_train': 0.5,
+                '/home/ginger/code/gderiddershanghai/deep-learning/data/hyperreenact': 0.2,
+                '/home/ginger/code/gderiddershanghai/deep-learning/data/fsgan': 0.2,
+                '/home/ginger/code/gderiddershanghai/deep-learning/data/CollabDiff': 0.1,
+            }
 
-            for dirpath, _, files in os.walk(subdir_path):
-                for file in files:
-                    if file.lower().endswith((".jpg", ".png")):
-                        self.image_paths[label].append(os.path.join(dirpath, file))
+            for root_dir, ratio in mixed_datasets.items():
+                subset_size = int(self.dataset_size * ratio) // 2  # Divide by 2 for equal real/fake sampling
+
+                for label, subdir in enumerate(['real', 'fake']):
+                    subdir_path = os.path.join(root_dir, subdir)
+                    if not os.path.exists(subdir_path):
+                        print(f"Warning: Not enough samples in {subdir_path}. Found 0, expected {subset_size}.")
+                        continue
+
+                    files = [
+                        os.path.join(dirpath, file)
+                        for dirpath, _, filenames in os.walk(subdir_path)
+                        for file in filenames if file.lower().endswith((".jpg", ".png"))
+                    ]
+
+                    if len(files) >= subset_size:
+                        sampled_files = random.sample(files, subset_size)
+                    else:
+                        print(f"Warning: Not enough samples in {subdir_path}. Found {len(files)}, expected {subset_size}.")
+                        sampled_files = files  # Use all available files if not enough
+                    
+                    self.image_paths[label].extend(sampled_files)
+
+
+
+        if self.config.train_dataset != 'mixed':
+            for label, subdir in enumerate(['real', 'fake']):  # 0 for real, 1 for fake
+                subdir_path = os.path.join(self.root_dir, subdir)
+                if not os.path.exists(subdir_path):
+                    raise ValueError(f"Subdirectory '{subdir}' not found in {self.root_dir}.")
+
+                for dirpath, _, files in os.walk(subdir_path):
+                    for file in files:
+                        if file.lower().endswith((".jpg", ".png")):
+                            self.image_paths[label].append(os.path.join(dirpath, file))
+
 
         if not any(self.image_paths.values()):
             raise ValueError(f"No .jpg or .png files found in {self.root_dir}.")
@@ -81,23 +117,40 @@ class TrainingDataset(Dataset):
 
     def __len__(self):
         return len(self.image_paths)
-
+    
     def __getitem__(self, index):
+        """
+        Loads and processes an image at the given index.
+
+        Returns:
+            torch.Tensor: Processed image tensor.
+            int: The label of the image (0 for real, 1 for fake).
+            str: The file path of the image.
+        """
         image_path = self.image_paths[index]
         label = self.labels[index]
 
-        # Load the image
-        image = cv2.imread(image_path)
-        if image is None:
-            raise ValueError(f"Error loading image: {image_path}")
-        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        try:
+            # Load the image
+            image = cv2.imread(image_path)
+            if image is None:
+                raise ValueError(f"Error loading image: {image_path}")
 
-        # Apply augmentations or preprocessing
-        transformed = self.transform(image=image)
-        image_tensor = transformed['image']
-        image_tensor = image_tensor.to(torch.float32)
+            # Convert BGR to RGB
+            image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+
+            # Apply augmentations or preprocessing
+            transformed = self.transform(image=image)
+            image_tensor = transformed["image"].float()
+
+        except Exception as e:
+            print(f"Warning: Skipped corrupted file {image_path}: {e}")
+
+            # Retry loading another image by picking a random valid one
+            return self.__getitem__((index + 1) % len(self.image_paths))
 
         return image_tensor, label, image_path
+
 
 
 if __name__ == "__main__":
