@@ -97,7 +97,6 @@ def get_detector(type, num_classes=2, load_weights=False, weights_path=None, dev
 
     return model
 
-
 class CLIPDetector(nn.Module):
     """
     CLIP-based detector for binary classification (real vs fake).
@@ -161,6 +160,19 @@ class XceptionDetector(nn.Module):
         return probabilities
 
 class SpslDetector(nn.Module):
+
+    # Code reference from
+    # @article
+    #
+    # {yan2024df40,
+    #  title = {DF40: Toward Next - Generation Deepfake Detection},
+    # author = {Yan, Zhiyuan and Yao, Taiping and Chen, Shen and Zhao, Yandan and Fu, Xinghe and Zhu, Junwei and Luo,
+    #           Donghao and Yuan, Li and Wang, Chengjie and Ding, Shouhong and others},
+    # journal = {arXiv
+    # preprint
+    # arXiv: 2406.13495},
+    # year = {2024}
+    # }
     def __init__(self, load_weights=False):
         super().__init__()
         self.backbone = self.build_backbone()
