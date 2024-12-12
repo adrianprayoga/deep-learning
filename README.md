@@ -18,4 +18,15 @@
     - visualizers: various utility related to visualization
 ```
 
+## Inference
+To run inference, first update src/config.yml  
+- `model_type`: model name `spsl|clip|xception`
+- `weights_path`: full path to model weights
+- `data_root_dir`: full path to the data directory containing images. need to contain `real` and `fake` folder
+
+After the config is set, run the script from the root folder i.e. `python src/inference.py`
+
+## Visualization
+Update all the path to weights and viz folder
+After the config is set, run the script from the root folder i.e. `python src/generate_viz.py`
 
