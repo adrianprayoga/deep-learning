@@ -5,8 +5,8 @@ import seaborn as sns
 
 def plot(df, target_col='AUC', use_lora=True, share_y=True, save=False):
     
-    dataset_mapping = { 'MidJourney': 'MidJourney', 'starganv2': 'StarGAN v2', 'heygen': 'HeyGen'}
-    baseline_scores = {     'MidJourney': 0.4343, 'starganv2': 0.78, 'heygen': 0.701}
+    dataset_mapping = {'MidJourney': 'MidJourney', 'starganv2': 'StarGAN v2', 'heygen': 'HeyGen'}
+    baseline_scores = {'MidJourney': 0.4343, 'starganv2': 0.78, 'heygen': 0.701}
     title_mapping = { 'CollabDiff': 'CollabDiff', 'JDB_random': 'Random JDB & Coco', 
                      'JDB_train': 'Random JDB & Coco', 'mixed': 'Mixed Dataset'}
         
@@ -16,7 +16,7 @@ def plot(df, target_col='AUC', use_lora=True, share_y=True, save=False):
     datasets = ['MidJourney', 'starganv2', 'heygen']
     filtered_dfs = {dataset: df_filtered[df_filtered['Validation Dataset'] == dataset] for dataset in datasets}
     # *********************************************************************************************************************
-    # The different colors
+    # The different colors, Dark4 is best
     seaborn_palettes = [ "Set1", "Dark2", "tab10", "Paired", "Spectral", "muted" ]
     
     color_palette = sns.color_palette("Dark2", 4)
@@ -78,7 +78,10 @@ def plot(df, target_col='AUC', use_lora=True, share_y=True, save=False):
     suptitle = f"Cross-Dataset Results of CLIP Finetuned with {finetune_type} on {title_mapping[training_set]}"
     plt.suptitle(suptitle, fontsize=18, fontweight='bold', y=1.02)
     plt.tight_layout()
+
     if save:
         root_fp = '/home/ginger/code/gderiddershanghai/deep-learning/visualization/finetuning_plots/'
-        plt.savefig(f"{root_fp}{target_col}_{training_set}_{use_lora}performance_plot.png", dpi=300, bbox_inches='tight', bbox_extra_artists=(fig.legend(),))
+        plt.savefig(f"{root_fp}_{target_col}_{training_set}_{use_lora}_performance_plot.png", 
+            dpi=300, bbox_inches='tight')
+
     plt.show()

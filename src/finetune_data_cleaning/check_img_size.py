@@ -4,22 +4,21 @@ from PIL import Image
 import cv2
 
 def calculate_average_image_size(image_directory, sample_size=100):
-    # Check if the directory exists
+
     if not os.path.exists(image_directory):
         print(f"Directory {image_directory} does not exist.")
         return None, None
 
-    # List all files in the directory
+
     image_files = [f for f in os.listdir(image_directory) if os.path.isfile(os.path.join(image_directory, f))]
 
     if not image_files:
         print(f"No image files found in {image_directory}.")
         return None, None
 
-    # Select a random sample of images
+
     sample_images = random.sample(image_files, min(sample_size, len(image_files)))
 
-    # Calculate total dimensions
     total_width = 0
     total_height = 0
     min_width, min_height = float('inf'), float('inf')
@@ -39,13 +38,11 @@ def calculate_average_image_size(image_directory, sample_size=100):
             print(f"Error processing file {img_file}: {e}")
     print(f"Min Size: {min_width}x{min_height}, Max Size: {max_width}x{max_height}")
 
-    # Compute average size
     average_width = total_width / len(sample_images)
     average_height = total_height / len(sample_images)
 
     return average_width, average_height
 
-# Random Downscale: 23% - 60% of original size
 def random_downscale(image):
     scale_factor = random.uniform(0.23, 0.6)
     new_width = max(int(image.shape[1] * scale_factor), 224)
@@ -54,7 +51,8 @@ def random_downscale(image):
 
     return downscaled_image
 
-# Random Upscale: 150% - 250% of original size
+
+
 def random_upscale(image):
     scale_factor = random.uniform(1.5, 2.2)
     new_width = max(224,int(image.shape[1] * scale_factor))
@@ -85,8 +83,6 @@ if __name__ == "__main__":
         if os.path.isfile(img_path):
             image = cv2.imread(img_path)
             if image is not None:
-                # Randomly choose to upscale or downscale
                 rescaled_image = random_upscale(image)
                 save_path = os.path.join(output_dir, img_file)
                 cv2.imwrite(save_path, rescaled_image)
-                # print(f"Processed and saved: {img_file}")

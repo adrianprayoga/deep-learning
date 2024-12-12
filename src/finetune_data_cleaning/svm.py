@@ -1,11 +1,5 @@
 # I did the actual training in a jupyter notebook, just copying here to show what I did
 
-
-
-
-
-
-
 # from src.finetune_data_cleaning.bert_embeddings import BertFeatureExtractor
 # from sklearn.model_selection import train_test_split
 # from sklearn.svm import SVC

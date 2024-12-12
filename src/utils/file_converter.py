@@ -59,6 +59,7 @@ def clean_unreadable_files(folder_path):
     Args:
         folder_path (str): Path to the folder containing files.
     """
+    print('starting')
     if not os.path.isdir(folder_path):
         print(f"Error: {folder_path} is not a valid directory.")
         return
@@ -74,16 +75,16 @@ def clean_unreadable_files(folder_path):
             print(f"Skipping non-file: {file_path}")
             continue
 
-        try:
-            # Try opening the file as an image
-            with Image.open(file_path) as img:
-                img.verify()  # Verifies the file is a valid image
-        except UnidentifiedImageError:
-            print(f"Cannot open {filename}. Removing the file.")
-            os.remove(file_path)
-        except Exception as e:
-            print(f"An error occurred with file {filename}: {e}")
-            os.remove(file_path)
+        # try:
+        #     # Try opening the file as an image
+        #     with Image.open(file_path) as img:
+        #         img.verify()  # Verifies the file is a valid image
+        # except UnidentifiedImageError:
+        #     print(f"Cannot open {filename}. Removing the file.")
+        #     os.remove(file_path)
+        # except Exception as e:
+        #     print(f"An error occurred with file {filename}: {e}")
+        #     os.remove(file_path)
 
 if __name__ == "__main__":
     # folder_path = input("Enter the path to the folder containing images: ").strip()

@@ -1,3 +1,5 @@
+# copied from different project
+
 from transformers import BertTokenizer, BertModel
 import torch
 import numpy as np

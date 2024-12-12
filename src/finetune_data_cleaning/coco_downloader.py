@@ -2,11 +2,10 @@ import os
 import shutil
 import fiftyone as fo
 
-# Configuration
 DATA_DIR = '/home/ginger/code/gderiddershanghai/deep-learning/data/JDB_random'
 SAVE_DIR = f'{DATA_DIR}/real'
 CATEGORY_NAME = 'person'
-LIMIT = 7500  # Number of images to download
+LIMIT = 7500  
 
 
 def download_images(dataset, save_dir):
@@ -35,21 +34,19 @@ def download_images(dataset, save_dir):
 
 
 def main():
-    # Load COCO dataset filtered by "person"
-    print("Downloading COCO dataset using FiftyOne...")
+
     dataset = fo.zoo.load_zoo_dataset(
         "coco-2017",
-        split="train",               # Change to "validation" or "test" if needed
-        label_types=["detections"],  # Only object detection annotations
-        classes=[CATEGORY_NAME],     # Filter only for "person"
-        max_samples=LIMIT,           # Limit the number of samples
+        split="train",               
+        label_types=["detections"],  
+        classes=[CATEGORY_NAME],     
+        max_samples=LIMIT,           
         dataset_name="coco_person",
     )
 
-    # Download the images
     download_images(dataset, SAVE_DIR)
 
-    print("Download complete!")
+    print("Donew!")
 
 
 if __name__ == "__main__":

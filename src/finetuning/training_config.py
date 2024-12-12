@@ -3,9 +3,6 @@ import torch
 from peft import LoraConfig
 
 class TrainingConfig:
-    """
-    Configuration class to manage training settings and hyperparameters.
-    """
     def __init__(self):
         # Paths
         self.model_weights = '/home/ginger/code/gderiddershanghai/deep-learning/weights/clip_DF40/clip.pth'
@@ -23,14 +20,13 @@ class TrainingConfig:
         os.makedirs(os.path.dirname(self.csv_path), exist_ok=True)
         os.makedirs(self.checkpoint_dir, exist_ok=True)
 
-        # Dataset settings
         self.dataset_size = 200
 
         # Model settings
 
-        self.use_lora = True  # Whether LoRA is applied
+        self.use_lora = True  
         self.model_name = "CLIP_LoRA" if self.use_lora else "CLIP_Full"
-        self.augment_data = True  # Whether data augmentation is applied
+        self.augment_data = True  
         self.lora_config = LoraConfig(
         # task_type=TaskType.FEATURE_EXTRACTION, 
         r=16, 
@@ -40,7 +36,6 @@ class TrainingConfig:
         bias="none"
         )
 
-        # Training hyperparameters
         self.learning_rate = 1e-3 if self.use_lora else 5e-6
         self.batch_size = 32
         self.epochs = 5
@@ -51,45 +46,40 @@ class TrainingConfig:
         self.use_weight_decay = False
         self.weight_decay = 0.01
 
-        # Resolution and device
-        self.resolution = 224  # Image resolution (e.g., 224x224 for CLIP)
+        self.resolution = 224  # 224x224 for CLIP
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
-
-        # Reproducibility
         self.seed = 42
         
         
     def update_hyperparams(self):
-        """
-        Update learning rate, weight decay, and LoRA configuration based on LoRA usage and dataset size.
-        """
+
         self.csv_path = f"/home/ginger/code/gderiddershanghai/deep-learning/outputs/finetune_results/FINE_metrics_{os.path.basename(self.train_dataset)}.csv"
         
-        # Handle very small datasets
+
         if self.dataset_size <= 500:
             print("Warning: Dataset size is very small; overfitting risk is high.")
             
             if self.use_lora:
-                self.learning_rate = 1.5e-3  # Updated
+                self.learning_rate = 1.5e-3  
                 self.lora_config.lora_alpha = 16  
                 self.lora_config.lora_dropout = 0.3  
                 self.use_weight_decay = False
                 self.weight_decay = 0.0
             else: 
-                self.learning_rate = 3e-4  # Updated
+                self.learning_rate = 3e-4 
                 self.use_weight_decay = True
                 self.weight_decay = 0.05  
 
         else:
             if self.use_lora:
                 if self.dataset_size < 2000:
-                    self.learning_rate = 9e-4  # Updated
+                    self.learning_rate = 9e-4  
                     self.lora_config.lora_alpha = 16
                 elif self.dataset_size <= 10000:
-                    self.learning_rate = 4e-4  # Updated
+                    self.learning_rate = 4e-4  
                     self.lora_config.lora_alpha = 32
                 else:
-                    self.learning_rate = 1.8e-4  # Updated
+                    self.learning_rate = 1.8e-4  
                     self.lora_config.r = 16
                     self.lora_config.lora_alpha = 64
                     self.lora_config.lora_dropout = 0.1
@@ -99,23 +89,20 @@ class TrainingConfig:
 
             else: 
                 if self.dataset_size <= 2000:
-                    self.learning_rate = 4e-5  # Updated
+                    self.learning_rate = 4e-5  
                 elif self.dataset_size <= 10000:
-                    self.learning_rate = 2e-5  # Updated
+                    self.learning_rate = 2e-5  
                 else:
-                    self.learning_rate = 1e-5  # Updated
+                    self.learning_rate = 1e-5  
 
                 self.use_weight_decay = True
                 self.weight_decay = 0.01
 
-        # Print updated values for confirmation
-        print(f"Updated Hyperparameters:")
         print(f" - Learning Rate: {self.learning_rate}")
         print(f" - Use Weight Decay: {self.use_weight_decay}")
         print(f" - Weight Decay: {self.weight_decay}")
         print(f" - Dataset Size: {self.dataset_size}")
 
-        # Print LoRA-specific configuration details
         if self.use_lora:
             print(f" - LoRA Alpha: {self.lora_config.lora_alpha}")
             print(f" - LoRA Rank (r): {self.lora_config.r}")
@@ -123,9 +110,7 @@ class TrainingConfig:
 
 
     def save_config(self, path=None):
-        """
-        Save the configuration to a JSON file for reproducibility.
-        """
+
         import json
         if path is None:
             path = f"config_{self.model_name}_{self.dataset_size}.json"

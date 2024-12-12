@@ -2,20 +2,16 @@ import os
 import shutil
 
 def flatten_directory(base_path, target_folder, subfolder=None):
-    """
-    Flattens a directory structure by moving all files to the target folder
-    and renaming them to ensure unique names.
-    """
     source_path = os.path.join(base_path, subfolder) if subfolder else base_path
     target_path = os.path.join(base_path, target_folder)
 
     if not os.path.exists(target_path):
         os.makedirs(target_path)
-
     file_counter = 0
     dirs_to_remove = []
 
-    for root, dirs, files in os.walk(source_path):
+   ####################GET FILES################################
+    for root, dir, files in os.walk(source_path):
         for file in files:
             file_counter += 1
             file_path = os.path.join(root, file)
@@ -26,21 +22,22 @@ def flatten_directory(base_path, target_folder, subfolder=None):
 
             try:
                 shutil.move(file_path, dest_path)
-                print(f"Moved: {file_path} -> {dest_path}")
+                print(f"MOved {file_path} to {dest_path}")
             except Exception as e:
-                print(f"Error moving {file_path}: {e}")
+                print(f"coudln't move {file_path}: {e}")
 
         if root != source_path:
             dirs_to_remove.append(root)
 
+    ######################REMOVE DIRS#######################
     for dir_path in dirs_to_remove:
         try:
             os.rmdir(dir_path)
-            print(f"Removed empty directory: {dir_path}")
+            print(f"Removed empty dir {dir_path}")
         except OSError as e:
-            print(f"Failed to remove directory {dir_path}: {e}")
+            print(f"couldnt remove dir {dir_path}: {e}")
 
-    print(f"Flattened {file_counter} files into {target_path}.")
+    print(f" TOTAL FILES {file_counter}")
 
 if __name__ == "__main__":
     # def flatten_directory(base_path, target_folder, subfolder=None):
